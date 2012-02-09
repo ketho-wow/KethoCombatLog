@@ -1,0 +1,30 @@
+## Interface: 40300
+## Version: 1.05
+## Title: Ketho CombatLog
+## Notes: Ketho's Combat Log
+## Author: Ketho @ EU-Boulderfist
+## SavedVariables: KethoCombatLogDB
+## OptionalDeps: Ace3
+## X-Embeds: Ace3
+## X-Category: Combat
+
+#@no-lib-strip@
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceEvent-3.0\AceEvent-3.0.xml
+Libs\AceTimer-3.0\AceTimer-3.0.xml
+Libs\AceDB-3.0\AceDB-3.0.xml
+Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+Libs\AceConsole-3.0\AceConsole-3.0.xml
+Libs\AceGUI-3.0\AceGUI-3.0.xml
+Libs\AceConfig-3.0\AceConfig-3.0.xml
+Libs\LibSink-2.0\lib.xml
+#@end-no-lib-strip@
+Libs\LibBabble-3.0\LibBabble-3.0.lua
+Libs\LibBabble-3.0\LibBabble-Race-3.0.lua
+Libs\LibBabble-3.0\LibBabble-TalentTree-3.0.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+
+Locales.lua
+Ketho_CombatLog.lua
