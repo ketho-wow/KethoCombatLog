@@ -1,6 +1,6 @@
 --[[
 Name: LibBabble-TalentTree-3.0
-Revision: $Rev: 44 $
+Revision: $Rev: 46 $
 Maintainers: ckknight, nevcairiel, Ackis
 Website: http://www.wowace.com/projects/libbabble-talenttree-3-0/
 Dependencies: None
@@ -8,7 +8,7 @@ License: MIT
 ]]
 
 local MAJOR_VERSION = "LibBabble-TalentTree-3.0"
-local MINOR_VERSION = 90000 + tonumber(("$Rev: 44 $"):match("%d+"))
+local MINOR_VERSION = 90000 + tonumber(("$Rev: 46 $"):match("%d+"))
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib = LibStub("LibBabble-3.0"):New(MAJOR_VERSION, MINOR_VERSION)
@@ -228,6 +228,36 @@ elseif GAME_LOCALE == "ptBR" then
 	Subtlety = "Subterfúgio",
 	Survival = "Sobrevivência",
 	Unholy = "Profano",
+}
+elseif GAME_LOCALE == "itIT" then
+	lib:SetCurrentTranslations {
+	-- Affliction = "",
+	-- Arcane = "",
+	-- Arms = "",
+	-- Assassination = "",
+	-- Balance = "",
+	-- ["Beast Mastery"] = "",
+	-- Blood = "",
+	-- Combat = "",
+	-- Demonology = "",
+	-- Destruction = "",
+	-- Discipline = "",
+	-- Elemental = "",
+	-- Enhancement = "",
+	-- ["Feral Combat"] = "",
+	-- Fire = "",
+	-- Frost = "",
+	-- Fury = "",
+	-- Holy = "",
+	-- Hybrid = "",
+	-- Marksmanship = "",
+	-- Protection = "",
+	-- Restoration = "",
+	-- Retribution = "",
+	-- Shadow = "",
+	-- Subtlety = "",
+	-- Survival = "",
+	-- Unholy = "",
 }
 elseif GAME_LOCALE == "ruRU" then
 	lib:SetCurrentTranslations {

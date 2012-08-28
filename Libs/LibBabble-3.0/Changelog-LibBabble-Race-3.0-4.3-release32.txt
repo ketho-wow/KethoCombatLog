@@ -1,0 +1,13 @@
+------------------------------------------------------------------------
+r50 | nevcairiel | 2012-08-07 16:23:27 +0000 (Tue, 07 Aug 2012) | 1 line
+Changed paths:
+   A /tags/4.3-release32 (from /trunk:49)
+
+Weekly Tag - #32
+------------------------------------------------------------------------
+r49 | nevcairiel | 2012-08-07 16:22:18 +0000 (Tue, 07 Aug 2012) | 1 line
+Changed paths:
+   M /trunk/LibBabble-Race-3.0.lua
+
+Automated LibBabble re-generation from the localization system
+------------------------------------------------------------------------

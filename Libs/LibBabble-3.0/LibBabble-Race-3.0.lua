@@ -1,6 +1,6 @@
 --[[
 Name: LibBabble-Race-3.0
-Revision: $Rev: 47 $
+Revision: $Rev: 49 $
 Maintainers: ckknight, nevcairiel, Ackis
 Website: http://www.wowace.com/projects/libbabble-race-3-0/
 Dependencies: None
@@ -8,7 +8,7 @@ License: MIT
 ]]
 
 local MAJOR_VERSION = "LibBabble-Race-3.0"
-local MINOR_VERSION = 90000 + tonumber(("$Rev: 47 $"):match("%d+"))
+local MINOR_VERSION = 90000 + tonumber(("$Rev: 49 $"):match("%d+"))
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib = LibStub("LibBabble-3.0"):New(MAJOR_VERSION, MINOR_VERSION)
@@ -242,6 +242,38 @@ elseif GAME_LOCALE == "ptBR" then
 	Voidwalker = "Emissário do Caos", -- Needs review
 	Worgen = "Worgen",
 	Worgen_PL = "Worgens",
+}
+elseif GAME_LOCALE == "itIT" then
+	lib:SetCurrentTranslations {
+	-- ["Blood Elf"] = "",
+	-- ["Blood elves"] = "",
+	-- Draenei = "",
+	-- Draenei_PL = "",
+	-- Dwarf = "",
+	-- Dwarves = "",
+	-- Felguard = "",
+	-- Felhunter = "",
+	-- Gnome = "",
+	-- Gnomes = "",
+	-- Goblin = "",
+	-- Goblins = "",
+	-- Human = "",
+	-- Humans = "",
+	-- Imp = "",
+	-- ["Night Elf"] = "",
+	-- ["Night elves"] = "",
+	-- Orc = "",
+	-- Orcs = "",
+	-- Succubus = "",
+	-- Tauren = "",
+	-- Tauren_PL = "",
+	-- Troll = "",
+	-- Trolls = "",
+	-- Undead = "",
+	-- Undead_PL = "",
+	-- Voidwalker = "",
+	-- Worgen = "",
+	-- Worgen_PL = "",
 }
 elseif GAME_LOCALE == "ruRU" then
 	lib:SetCurrentTranslations {

@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.05 [2012.02.09]			---
+--- Version: 1.06 [2012.08.28]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -24,9 +24,12 @@
 -- Added requests for only showing Battlerezzes, and MD/TotT done on Tanks
 -- check out BetterDate function
 
+--- Done: v1.06
+-- Hotfixed for MoP
+
 local NAME, S = ...
 local NAME2 = "Ketho CombatLog"
-local VERSION = 1.05
+local VERSION = 1.06
 local BUILD = "Release"
 
 KethoCombatLog = LibStub("AceAddon-3.0"):NewAddon("KethoCombatLog", "AceEvent-3.0", "AceTimer-3.0", "AceConsole-3.0", "LibSink-2.0")
@@ -58,7 +61,7 @@ local bit_band = bit.band
 local UnitName, UnitClass = UnitName, UnitClass
 local UnitInParty, UnitInRaid = UnitInParty, UnitInRaid
 local UnitGroupRolesAssigned = UnitGroupRolesAssigned
-local GetNumPartyMembers, GetNumRaidMembers = GetNumPartyMembers, GetNumRaidMembers
+local GetNumSubgroupMembers, GetNumGroupMembers = GetNumSubgroupMembers, GetNumGroupMembers
 local GetSpellInfo, oldGetSpellLink = GetSpellInfo, GetSpellLink
 
 --# Global Strings / Format Strings / Bitmasks
@@ -219,6 +222,7 @@ local Taunt = {
 	[6795] = true, -- Druid: Growl
 	[17735] = true, -- Warlock: Suffering [Voidwalker]
 	[20736] = true, -- Hunter: Distracting Shot
+	[116189] = true, -- Monk: Provoke; 115546
 -- Death Knight
 	[49560] = true, -- Death Grip
 	[51399] = true, -- Death Grip (melee range)
@@ -483,6 +487,7 @@ local defaults = {
 			Druid = {1.00 , 0.49, 0.04}, -- #FF7D0A
 			Hunter = {0.67, 0.83, 0.45}, -- #ABD473
 			Mage = {0.41, 0.80, 0.94}, -- #69CCF0
+			Monk = {0.00, 1.00, 0.59}, -- #00FF96
 			Paladin = {0.96, 0.55, 0.73}, -- #F58CBA
 			Priest = {1.00, 1.00, 1.00}, -- #FFFFFF
 			Rogue = {1.00, 0.96, 0.41}, -- #FFF569
@@ -525,7 +530,7 @@ local defaults = {
 local options = {
 	type = "group",
 	childGroups = "tab",
-	name = " \124cffADFF2FKetho\124r |cffFFFFFFCombatLog|r |cffB6CA00v"..VERSION.."|r",
+	name = " Ketho |cffFFFFFFCombatLog|r |cffADFF2Fv"..VERSION.."|r",
 	args = {
 		Main = {
 			type = "group", order = 1,
@@ -1594,6 +1599,7 @@ local options = {
 							get = function(i) return spell[57934] end,
 							set = function(i, v) spell[57934] = v; spell_success[57934] = v end,
 						},
+						--[[ -- removed in MoP
 						FocusMagic = {
 							type = "toggle",
 							order = 7,
@@ -1602,6 +1608,8 @@ local options = {
 							get = function(i) return spell[54646] end,
 							set = function(i, v) spell[54646] = v; spell_applied[54646] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						DarkIntent = {
 							type = "toggle",
 							order = 10,
@@ -1610,6 +1618,8 @@ local options = {
 							get = function(i) return spell[80398] end,
 							set = function(i, v) spell[80398] = v; spell_applied[80398] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						Vigilance = {
 							type = "toggle",
 							order = 13,
@@ -1618,6 +1628,7 @@ local options = {
 							get = function(i) return spell[50720] end,
 							set = function(i, v) spell[50720] = v; spell_applied[50720] = v end,
 						},
+						]]
 						Misdirection = {
 							type = "toggle",
 							order = 2,
@@ -1876,6 +1887,7 @@ local options = {
 							get = function(i) return spell[546] end,
 							set = function(i, v) spell[546] = v; spell_applied[546] = v end,
 						},
+						--[[ -- removed in MoP
 						WaterBreathing = {
 							type = "toggle",
 							order = 49,
@@ -1884,6 +1896,7 @@ local options = {
 							get = function(i) return spell[131] end,
 							set = function(i, v) spell[131] = v; spell_applied[131] = v end,
 						},
+						]]
 						UnendingBreath = {
 							type = "toggle",
 							order = 52,
@@ -1941,6 +1954,7 @@ local options = {
 							get = function(i) return spell[55694] end,
 							set = function(i, v) spell[55694] = v; spell_appliedNT[55694] = v end,
 						},
+						--[[ -- removed in MoP
 						Retaliation = {
 							type = "toggle",
 							order = 16,
@@ -1949,6 +1963,7 @@ local options = {
 							get = function(i) return spell[20230] end,
 							set = function(i, v) spell[20230] = v; spell_appliedNT[20230] = v end,
 						},
+						]]
 						Recklessness = {
 							type = "toggle",
 							order = 19,
@@ -2005,6 +2020,7 @@ local options = {
 							get = function(i) return spell[85730] end,
 							set = function(i, v) spell[85730] = v; spell_appliedNT[85730] = v end,
 						},
+						--[[ -- removed in MoP
 						Throwdown = {
 							type = "toggle",
 							order = 20,
@@ -2013,6 +2029,7 @@ local options = {
 							get = function(i) return spell[85388] end,
 							set = function(i, v) spell[85388] = v; spell_applied[85388] = v end,
 						},
+						]]
 						Bladestorm = {
 							type = "toggle",
 							order = 3,
@@ -2029,6 +2046,7 @@ local options = {
 							get = function(i) return spell[12292] end,
 							set = function(i, v) spell[12292] = v; spell_appliedNT[12292] = v end,
 						},
+						--[[ -- removed in MoP
 						HeroicFury = {
 							type = "toggle",
 							order = 9,
@@ -2037,6 +2055,7 @@ local options = {
 							get = function(i) return spell[60970] end,
 							set = function(i, v) spell[60970] = v; spell_appliedNT[60970] = v end,
 						},
+						]]
 						LastStand = {
 							type = "toggle",
 							order = 12,
@@ -2045,6 +2064,7 @@ local options = {
 							get = function(i) return spell[12975] end,
 							set = function(i, v) spell[12975] = v; spell_successNT[12975] = v end,
 						},
+						--[[ -- removed in MoP
 						ConcussionBlow = {
 							type = "toggle",
 							order = 15,
@@ -2053,6 +2073,7 @@ local options = {
 							get = function(i) return spell[12809] end,
 							set = function(i, v) spell[12809] = v; spell_applied[12809] = v end,
 						},
+						]]
 						Shockwave = {
 							type = "toggle",
 							order = 18,
@@ -2191,6 +2212,7 @@ local options = {
 							get = function(i) return spell[31884] end,
 							set = function(i, v) spell[31884] = v; spell_appliedNT[31884] = v end,
 						},
+						--[[ -- removed in MoP
 						GuardianAncientKings = {
 							type = "toggle",
 							order = 44,
@@ -2199,6 +2221,7 @@ local options = {
 							get = function(i) return spell[86150] end,
 							set = function(i, v) spell[86150] = v; spell_successNT[86150] = v end,
 						},
+						]]
 						DivinePlea = {
 							type = "toggle",
 							order = 47,
@@ -2279,6 +2302,7 @@ local options = {
 							get = function(i) return spell[20925] end,
 							set = function(i, v) spell[20925] = v; spell_appliedNT[20925] = v end,
 						},
+						--[[ -- removed in MoP
 						DivineGuardian = {
 							type = "toggle",
 							order = 49,
@@ -2287,6 +2311,7 @@ local options = {
 							get = function(i) return spell[70940] end,
 							set = function(i, v) spell[70940] = v; spell_successNT[70940] = v end,
 						},
+						]]
 						ArdentDefender = {
 							type = "toggle",
 							order = 52,
@@ -2295,6 +2320,7 @@ local options = {
 							get = function(i) return spell[31850] end,
 							set = function(i, v) spell[31850] = v; spell_appliedNT[31850] = v end,
 						},
+						--[[ -- removed in MoP
 						Zealotry = {
 							type = "toggle",
 							order = 55,
@@ -2303,6 +2329,7 @@ local options = {
 							get = function(i) return spell[85696] end,
 							set = function(i, v) spell[85696] = v; spell_appliedNT[85696] = v end,
 						},
+						]]
 						spacing3 = {type = "description", order = 60, name = ""},
 						RapidFire = {
 							type = "toggle",
@@ -2554,6 +2581,7 @@ local options = {
 							get = function(i) return spell[1725] end,
 							set = function(i, v) spell[1725] = v; spell_successNT[1725] = v end,
 						},
+						--[[ -- removed in MoP
 						ColdBlood = {
 							type = "toggle",
 							order = 102,
@@ -2562,6 +2590,7 @@ local options = {
 							get = function(i) return spell[14177] end,
 							set = function(i, v) spell[14177] = v; spell_successNT[14177] = v end,
 						},
+						]]
 						Vendetta = {
 							type = "toggle",
 							order = 105,
@@ -2659,6 +2688,7 @@ local options = {
 							get = function(i) return spell[740] end,
 							set = function(i, v) spell[740] = v; spell_successNT[740] = v end,
 						},
+						--[[ -- removed in MoP
 						Thorns = {
 							type = "toggle",
 							order = 133,
@@ -2667,6 +2697,7 @@ local options = {
 							get = function(i) return spell[467] end,
 							set = function(i, v) spell[467] = v; spell_appliedNT[467] = v end,
 						},
+						]]
 						Barkskin = {
 							type = "toggle",
 							order = 136,
@@ -2715,6 +2746,7 @@ local options = {
 							get = function(i) return spell[22842] end,
 							set = function(i, v) spell[22842] = v; spell_appliedNT[22842] = v end,
 						},
+						--[[ -- removed in MoP
 						Typhoon = {
 							type = "toggle",
 							order = 137,
@@ -2723,6 +2755,7 @@ local options = {
 							get = function(i) return spell[50516] end,
 							set = function(i, v) spell[50516] = v; spell_successNT[50516] = v end,
 						},
+						]]
 						ForceNature = {
 							type = "toggle",
 							order = 123,
@@ -2772,6 +2805,7 @@ local options = {
 							get = function(i) return spell[55342] end,
 							set = function(i, v) spell[55342] = v; spell_successNT[55342] = v end,
 						},
+						--[[ -- removed in MoP
 						FlameOrb = {
 							type = "toggle",
 							order = 144,
@@ -2780,6 +2814,8 @@ local options = {
 							get = function(i) return spell[82731] end,
 							set = function(i, v) spell[82731] = v; spell_successNT[82731] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						RingFrost = {
 							type = "toggle",
 							order = 147,
@@ -2788,6 +2824,7 @@ local options = {
 							get = function(i) return spell[82676] end,
 							set = function(i, v) spell[82676] = v; spell_summon[82676] = v end,
 						},
+						]]
 						Invisibility = {
 							type = "toggle",
 							order = 150,
@@ -2804,6 +2841,7 @@ local options = {
 							get = function(i) return spell[12051] end,
 							set = function(i, v) spell[12051] = v; spell_successNT[12051] = v end,
 						},
+						--[[ -- removed in MoP
 						MageWard = {
 							type = "toggle",
 							order = 156,
@@ -2812,6 +2850,7 @@ local options = {
 							get = function(i) return spell[543] end,
 							set = function(i, v) spell[543] = v; spell_successNT[543] = v end,
 						},
+						]]
 						ManaShield = {
 							type = "toggle",
 							order = 142,
@@ -2933,6 +2972,7 @@ local options = {
 							get = function(i) return spell[586] end,
 							set = function(i, v) spell[586] = v; spell_appliedNT[586] = v end,
 						},
+						--[[ -- removed in MoP
 						MindSoothe = {
 							type = "toggle",
 							order = 162,
@@ -2941,6 +2981,7 @@ local options = {
 							get = function(i) return spell[453] end,
 							set = function(i, v) spell[453] = v; spell_applied[453] = v end,
 						},
+						]]
 						InnerFire = {
 							type = "toggle",
 							order = 165,
@@ -2957,6 +2998,7 @@ local options = {
 							get = function(i) return spell[73413] end,
 							set = function(i, v) spell[73413] = v; spell_appliedNT[73413] = v end,
 						},
+						--[[ -- removed in MoP
 						Archangel = {
 							type = "toggle",
 							order = 171,
@@ -2965,6 +3007,7 @@ local options = {
 							get = function(i) return spell[87151] end,
 							set = function(i, v) spell[87151] = v; spell_successNT[87151] = v end,
 						},
+						]]
 						InnerFocus = {
 							type = "toggle",
 							order = 174,
@@ -2997,6 +3040,7 @@ local options = {
 							get = function(i) return spell[27827] end,
 							set = function(i, v) spell[27827] = v; spell_appliedNT[27827] = v end,
 						},
+						--[[ -- removed in MoP
 						Chakra = {
 							type = "toggle",
 							order = 172,
@@ -3005,6 +3049,7 @@ local options = {
 							get = function(i) return spell.Chakra end,
 							set = function(i, v) spell.Chakra = v; spell_successNT[14751] = v; spell_appliedNT[81209] = v; spell_appliedNT[81206] = v; spell_appliedNT[81208] = v end,
 						},
+						]]
 						Dispersion = {
 							type = "toggle",
 							order = 175,
@@ -3022,6 +3067,7 @@ local options = {
 							get = function(i) return spell[74434] end,
 							set = function(i, v) spell[74434] = v; spell_successNT[74434] = v end,
 						},
+						--[[ -- removed in MoP
 						SoulHarvest = {
 							type = "toggle",
 							order = 184,
@@ -3030,6 +3076,7 @@ local options = {
 							get = function(i) return spell[79268] end,
 							set = function(i, v) spell[79268] = v; spell_appliedNT[79268] = v end,
 						},
+						]]
 						Soulshatter = {
 							type = "toggle",
 							order = 187,
@@ -3102,6 +3149,7 @@ local options = {
 							get = function(i) return spell.SoulSwap end,
 							set = function(i, v) spell.SoulSwap = v; spell_success[86121] = v; spell_success[86213] = v end,
 						},
+						--[[ -- removed in MoP
 						DemonicEmpowerment = {
 							type = "toggle",
 							order = 183,
@@ -3110,6 +3158,8 @@ local options = {
 							get = function(i) return spell[47193] end,
 							set = function(i, v) spell[47193] = v; spell_successNT[47193] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						HandGuldan = {
 							type = "toggle",
 							order = 186,
@@ -3118,6 +3168,8 @@ local options = {
 							get = function(i) return spell[71521] end,
 							set = function(i, v) spell[71521] = v; spell_success[71521] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						Metamorphosis = {
 							type = "toggle",
 							order = 189,
@@ -3126,6 +3178,7 @@ local options = {
 							get = function(i) return spell[47241] end,
 							set = function(i, v) spell[47241] = v; spell_appliedNT[47241] = v end,
 						},
+						]]
 						DemonLeap = {
 							type = "toggle",
 							order = 192,
@@ -3350,6 +3403,7 @@ local options = {
 							get = function(i) return spell.RingFrostCC end,
 							set = function(i, v) spell.RingFrostCC = v; CrowdControl[82691] = v end,
 						},
+						--[[ -- removed in MoP
 						HungeringCold = {
 							type = "toggle",
 							order = 32,
@@ -3358,6 +3412,7 @@ local options = {
 							get = function(i) return spell[49203] end,
 							set = function(i, v) spell[49203] = v; CrowdControl[49203] = v end,
 						},
+						]]
 						PrecastDesc = {
 							type = "header",
 							order = 34,
@@ -3676,6 +3731,7 @@ local options = {
 							get = function(i) return spell[56453] end,
 							set = function(i, v) spell[56453] = v; spell_appliedNT[56453] = v end,
 						},
+						--[[ -- removed in MoP
 						NatureGrace = {
 							type = "toggle",
 							order = 11,
@@ -3684,6 +3740,8 @@ local options = {
 							get = function(i) return spell[16886] end,
 							set = function(i, v) spell[16886] = v; spell_appliedNT[16886] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						SurgeLight = {
 							type = "toggle",
 							order = 14,
@@ -3692,6 +3750,7 @@ local options = {
 							get = function(i) return spell[88688] end,
 							set = function(i, v) spell[88688] = v; spell_appliedNT[88688] = v end,
 						},
+						]]
 						HotStreak = {
 							type = "toggle",
 							order = 3,
@@ -3700,6 +3759,7 @@ local options = {
 							get = function(i) return spell[48108] end,
 							set = function(i, v) spell[48108] = v; spell_appliedNT[48108] = v end,
 						},
+						--[[ -- removed in MoP
 						FingersFrost = {
 							type = "toggle",
 							order = 6,
@@ -3708,6 +3768,7 @@ local options = {
 							get = function(i) return spell[44544] end,
 							set = function(i, v) spell[44544] = v; spell_appliedNT[44544] = v end,
 						},
+						]]
 						BrainFreeze = {
 							type = "toggle",
 							order = 9,
@@ -3716,6 +3777,7 @@ local options = {
 							get = function(i) return spell[57761] end,
 							set = function(i, v) spell[57761] = v; spell_appliedNT[57761] = v end,
 						},
+						--[[ -- removed in MoP
 						Nightfall = {
 							type = "toggle",
 							order = 12,
@@ -3724,6 +3786,8 @@ local options = {
 							get = function(i) return spell[17941] end,
 							set = function(i, v) spell[17941] = v; spell_appliedNT[17941] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						EmpoweredImp = {
 							type = "toggle",
 							order = 15,
@@ -3732,6 +3796,7 @@ local options = {
 							get = function(i) return spell[47283] end,
 							set = function(i, v) spell[47283] = v; spell_appliedNT[47283] = v end,
 						},
+						]]
 					},
 				},
 				Buff = {
@@ -3749,6 +3814,7 @@ local options = {
 							get = function(i) return spell[21562] end,
 							set = function(i, v) spell[21562] = v; spell_success[21562] = v end,
 						},
+						--[[ -- removed in MoP
 						ShadowProtection = {
 							type = "toggle",
 							order = 4,
@@ -3757,6 +3823,7 @@ local options = {
 							get = function(i) return spell[27683] end,
 							set = function(i, v) spell[27683] = v; spell_success[27683] = v end,
 						},
+						]]
 						ArcaneBrilliance = {
 							type = "toggle",
 							order = 7,
@@ -3822,6 +3889,7 @@ local options = {
 					inline = true,
 					disabled = function() return not profile.enableSpell or not KCL:IsEnabled() end,
 					args = {
+					--[[ -- removed in MoP
 						DevotionAura = {
 							type = "toggle",
 							order = 1,
@@ -3830,6 +3898,8 @@ local options = {
 							get = function(i) return spell[465] end,
 							set = function(i, v) spell[465] = v; spell_successNT[465] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						RetributionAura = {
 							type = "toggle",
 							order = 4,
@@ -3838,6 +3908,8 @@ local options = {
 							get = function(i) return spell[7294] end,
 							set = function(i, v) spell[7294] = v; spell_successNT[7294] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						ConcentrationAura = {
 							type = "toggle",
 							order = 7,
@@ -3846,6 +3918,8 @@ local options = {
 							get = function(i) return spell[19746] end,
 							set = function(i, v) spell[19746] = v; spell_successNT[19746] = v end,
 						},
+						]]
+						--[[ -- removed in MoP
 						ResistanceAura = {
 							type = "toggle",
 							order = 2,
@@ -3854,6 +3928,7 @@ local options = {
 							get = function(i) return spell[19891] end,
 							set = function(i, v) spell[19891] = v; spell_successNT[19891] = v end,
 						},
+						]]
 						CrusaderAura = {
 							type = "toggle",
 							order = 5,
@@ -3870,6 +3945,7 @@ local options = {
 							get = function(i) return spell[13159] end,
 							set = function(i, v) spell[13159] = v; spell_successNT[13159] = v end,
 						},
+						--[[ -- removed in MoP
 						AspectWild = {
 							type = "toggle",
 							order = 6,
@@ -3878,6 +3954,7 @@ local options = {
 							get = function(i) return spell[20043] end,
 							set = function(i, v) spell[20043] = v; spell_successNT[20043] = v end,
 						},
+						]]
 					},
 				},
 				Teleport = {
@@ -4028,7 +4105,7 @@ function KCL:OnEnable()
 			chatType = "YELL"
 		elseif profile.chatChannel == 4 then
 			-- don't want to spam to BATTLEGROUND, if people really want to announce to there, they can still use LibSink
-			chatType = (instanceType == "raid" and GetNumRaidMembers() > 0) and "RAID" or ((instanceType == "party" or instanceType == "arena") and GetNumPartyMembers() > 0) and "PARTY"
+			chatType = (instanceType == "raid" and GetNumGroupMembers() > 0) and "RAID" or ((instanceType == "party" or instanceType == "arena") and GetNumSubgroupMembers() > 0) and "PARTY"
 		else
 			chatType, channel = "CHANNEL", profile.chatChannel-4
 		end
@@ -4685,7 +4762,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		else
 			color = UnitColor[destReaction]
 		end
-		destUnitLocal = format("|cff%s"..TEXT_MODE_A_STRING_DEST_UNIT.."|r", color, destIconLocal, destGUID, "["..destNameTrim.."]", "["..(destName==sourceName and QUICKBUTTON_NAME_SELF or name).."]")
+		destUnitLocal = format("|cff%s"..TEXT_MODE_A_STRING_DEST_UNIT.."|r", color, destIconLocal, destGUID, "["..destNameTrim.."]", "["..(destName==sourceName and "Self" or name).."]")
 		destUnitChat = destIconChat.."["..destNameTrim.."]"
 	end
 
@@ -4799,8 +4876,8 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 					textChat = ChatFilter("Taunt") and sourceUnitChat..spellLinkChat.." AoE "..GetSpellInfo(355)
 				end
 			end
-			-- Pet 2649[Growl], Voidwalker 3716[Torment]
-			if subevent == "SPELL_CAST_SUCCESS" and profile.PetGrowl and destType >= 3 and (spellID == 2649 or spellID == 3716) then
+			-- Pet 2649[Growl], Voidwalker 3716[Torment], Greater Earth Elemental 36213[Angered Earth]
+			if subevent == "SPELL_CAST_SUCCESS" and profile.PetGrowl and destType >= 3 and (spellID == 2649 or spellID == 3716 or spellID == 36213) then
 				textLocal = profile.Taunt and sourceUnitLocal..spellLinkLocal.." |cff"..EventColor["TAUNT"].."growled|r "..destUnitLocal
 				textChat = ChatFilter("Taunt") and sourceUnitChat..spellLinkChat.." growled "..destUnitChat
 			end
