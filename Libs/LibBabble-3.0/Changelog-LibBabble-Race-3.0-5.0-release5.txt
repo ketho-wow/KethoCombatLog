@@ -1,0 +1,37 @@
+------------------------------------------------------------------------
+r59 | nevcairiel | 2012-09-24 00:53:19 +0000 (Mon, 24 Sep 2012) | 1 line
+Changed paths:
+   A /tags/5.0-release5 (from /trunk:58)
+
+Weekly Tag - #5
+------------------------------------------------------------------------
+r58 | nevcairiel | 2012-09-24 00:51:40 +0000 (Mon, 24 Sep 2012) | 1 line
+Changed paths:
+   M /trunk/LibBabble-Race-3.0.lua
+
+Automated LibBabble re-generation from the localization system
+------------------------------------------------------------------------
+r57 | nevcairiel | 2012-09-22 07:01:16 +0000 (Sat, 22 Sep 2012) | 1 line
+Changed paths:
+   M /trunk/LibBabble-Race-3.0.lua
+
+Automated LibBabble re-generation from the localization system
+------------------------------------------------------------------------
+r55 | nevcairiel | 2012-09-17 22:16:05 +0000 (Mon, 17 Sep 2012) | 1 line
+Changed paths:
+   M /trunk/LibBabble-Race-3.0.lua
+
+Automated LibBabble re-generation from the localization system
+------------------------------------------------------------------------
+r53 | nevcairiel | 2012-09-04 15:10:31 +0000 (Tue, 04 Sep 2012) | 1 line
+Changed paths:
+   M /trunk/LibBabble-Race-3.0.lua
+
+Automated LibBabble re-generation from the localization system
+------------------------------------------------------------------------
+r51 | nevcairiel | 2012-08-28 05:15:03 +0000 (Tue, 28 Aug 2012) | 1 line
+Changed paths:
+   M /trunk/LibBabble-Race-3.0.toc
+
+Update .toc for 5.0
+------------------------------------------------------------------------

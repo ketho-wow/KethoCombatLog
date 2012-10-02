@@ -1,6 +1,6 @@
 --[[
 Name: LibBabble-Race-3.0
-Revision: $Rev: 49 $
+Revision: $Rev: 58 $
 Maintainers: ckknight, nevcairiel, Ackis
 Website: http://www.wowace.com/projects/libbabble-race-3-0/
 Dependencies: None
@@ -8,7 +8,7 @@ License: MIT
 ]]
 
 local MAJOR_VERSION = "LibBabble-Race-3.0"
-local MINOR_VERSION = 90000 + tonumber(("$Rev: 49 $"):match("%d+"))
+local MINOR_VERSION = 90000 + tonumber(("$Rev: 58 $"):match("%d+"))
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib = LibStub("LibBabble-3.0"):New(MAJOR_VERSION, MINOR_VERSION)
@@ -36,6 +36,8 @@ lib:SetBaseTranslations {
 	["Night elves"] = "Night elves",
 	Orc = "Orc",
 	Orcs = "Orcs",
+	Pandaren = "Pandaren",
+	Pandaren_PL = "Pandaren",
 	Succubus = "Succubus",
 	Tauren = "Tauren",
 	Tauren_PL = "Tauren",
@@ -72,6 +74,8 @@ elseif GAME_LOCALE == "deDE" then
 	["Night elves"] = "Nachtelfen",
 	Orc = "Orc",
 	Orcs = "Orcs",
+	-- Pandaren = "",
+	-- Pandaren_PL = "",
 	Succubus = "Sukkubus",
 	Tauren = "Tauren",
 	Tauren_PL = "Tauren",
@@ -104,6 +108,8 @@ elseif GAME_LOCALE == "frFR" then
 	["Night elves"] = "Elfes de la nuit",
 	Orc = "Orc",
 	Orcs = "Orcs",
+	-- Pandaren = "",
+	-- Pandaren_PL = "",
 	Succubus = "Succube",
 	Tauren = "Tauren",
 	Tauren_PL = "Taurens",
@@ -136,6 +142,8 @@ elseif GAME_LOCALE == "koKR" then
 	["Night elves"] = "나이트 엘프",
 	Orc = "오크",
 	Orcs = "오크",
+	-- Pandaren = "",
+	-- Pandaren_PL = "",
 	Succubus = "서큐버스",
 	Tauren = "타우렌",
 	Tauren_PL = "타우렌",
@@ -168,6 +176,8 @@ elseif GAME_LOCALE == "esES" then
 	["Night elves"] = "Elfos de la noche",
 	Orc = "Orco",
 	Orcs = "Orcos",
+	-- Pandaren = "",
+	-- Pandaren_PL = "",
 	Succubus = "Súcubo",
 	Tauren = "Tauren",
 	Tauren_PL = "Tauren",
@@ -200,6 +210,8 @@ elseif GAME_LOCALE == "esMX" then
 	["Night elves"] = "Elfos de la noche",
 	Orc = "Orco",
 	Orcs = "Orcos",
+	-- Pandaren = "",
+	-- Pandaren_PL = "",
 	Succubus = "Súcubo",
 	Tauren = "Tauren",
 	Tauren_PL = "Tauren",
@@ -232,6 +244,8 @@ elseif GAME_LOCALE == "ptBR" then
 	["Night elves"] = "Elfos Noturnos",
 	Orc = "Orc",
 	Orcs = "Orcs",
+	-- Pandaren = "",
+	-- Pandaren_PL = "",
 	Succubus = "Sucubo", -- Needs review
 	Tauren = "Tauren",
 	Tauren_PL = "Taurens",
@@ -245,35 +259,37 @@ elseif GAME_LOCALE == "ptBR" then
 }
 elseif GAME_LOCALE == "itIT" then
 	lib:SetCurrentTranslations {
-	-- ["Blood Elf"] = "",
-	-- ["Blood elves"] = "",
-	-- Draenei = "",
-	-- Draenei_PL = "",
-	-- Dwarf = "",
-	-- Dwarves = "",
-	-- Felguard = "",
-	-- Felhunter = "",
-	-- Gnome = "",
-	-- Gnomes = "",
-	-- Goblin = "",
-	-- Goblins = "",
-	-- Human = "",
-	-- Humans = "",
-	-- Imp = "",
-	-- ["Night Elf"] = "",
-	-- ["Night elves"] = "",
-	-- Orc = "",
-	-- Orcs = "",
-	-- Succubus = "",
-	-- Tauren = "",
-	-- Tauren_PL = "",
-	-- Troll = "",
-	-- Trolls = "",
-	-- Undead = "",
-	-- Undead_PL = "",
-	-- Voidwalker = "",
-	-- Worgen = "",
-	-- Worgen_PL = "",
+	["Blood Elf"] = "Elfo del Sangue",
+	["Blood elves"] = "Elfi del Sangue",
+	Draenei = "Draenei",
+	Draenei_PL = "Draenei",
+	Dwarf = "Nano",
+	Dwarves = "Nani",
+	Felguard = "Vilguardiano",
+	Felhunter = "Vilsegugio",
+	Gnome = "Gnomo",
+	Gnomes = "Gnomi",
+	Goblin = "Goblin",
+	Goblins = "Goblins",
+	Human = "Umano",
+	Humans = "Umani",
+	Imp = "Folletto",
+	["Night Elf"] = "Elfo della Notte",
+	["Night elves"] = "Elfi della Notte",
+	Orc = "Orco",
+	Orcs = "Orchi",
+	-- Pandaren = "",
+	-- Pandaren_PL = "",
+	Succubus = "Succube",
+	Tauren = "Tauren",
+	Tauren_PL = "Tauren",
+	Troll = "Troll",
+	Trolls = "Trolls",
+	Undead = "Non Morto",
+	Undead_PL = "Non Morti",
+	Voidwalker = "Ombra del Vuoto",
+	Worgen = "Worgen",
+	Worgen_PL = "Worgens",
 }
 elseif GAME_LOCALE == "ruRU" then
 	lib:SetCurrentTranslations {
@@ -296,6 +312,8 @@ elseif GAME_LOCALE == "ruRU" then
 	["Night elves"] = "Ночные эльфы",
 	Orc = "Орк",
 	Orcs = "Орки",
+	-- Pandaren = "",
+	-- Pandaren_PL = "",
 	Succubus = "Суккуб",
 	Tauren = "Таурен",
 	Tauren_PL = "Таурены",
@@ -328,6 +346,8 @@ elseif GAME_LOCALE == "zhCN" then
 	["Night elves"] = "暗夜精灵",
 	Orc = "兽人",
 	Orcs = "兽人",
+	Pandaren = "熊猫人",
+	Pandaren_PL = "熊猫人",
 	Succubus = "魅魔",
 	Tauren = "牛头人",
 	Tauren_PL = "牛头人",
@@ -360,6 +380,8 @@ elseif GAME_LOCALE == "zhTW" then
 	["Night elves"] = "夜精靈",
 	Orc = "獸人",
 	Orcs = "獸人",
+	Pandaren = "熊貓人",
+	Pandaren_PL = "熊貓人",
 	Succubus = "魅魔",
 	Tauren = "牛頭人",
 	Tauren_PL = "牛頭人",

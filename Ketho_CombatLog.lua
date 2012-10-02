@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.06 [2012.08.28]			---
+--- Version: 1.07 [2012.10.02]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -17,19 +17,9 @@
 -- Support for Localization
 -- DevTools style debugging, and similar way to easily announce a chatlog entry
 
---- Done: v1.04
--- Added option to the Custom Spells for the verbose "Self" as in "[Player][Spell] on [Self]"
--- The LibDataBroker display now toggles the options menu when clicked, instead of just opening
--- Added [Cauldron of Battle] and [Big Cauldron of Battle] to Feasts
--- Added requests for only showing Battlerezzes, and MD/TotT done on Tanks
--- check out BetterDate function
-
---- Done: v1.06
--- Hotfixed for MoP
-
 local NAME, S = ...
 local NAME2 = "Ketho CombatLog"
-local VERSION = 1.06
+local VERSION = 1.07
 local BUILD = "Release"
 
 KethoCombatLog = LibStub("AceAddon-3.0"):NewAddon("KethoCombatLog", "AceEvent-3.0", "AceTimer-3.0", "AceConsole-3.0", "LibSink-2.0")
@@ -483,17 +473,17 @@ local defaults = {
 			Shadow = {0.50, 0.50, 1.00}, -- #8080FF
 			Arcane = {1.00, 0.50, 1.00}, -- #FF80FF
 			-- RAID_CLASS_COLORS
-			DeathKnight = {0.77, 0.12, 0.23}, -- #C41F3B
-			Druid = {1.00 , 0.49, 0.04}, -- #FF7D0A
-			Hunter = {0.67, 0.83, 0.45}, -- #ABD473
-			Mage = {0.41, 0.80, 0.94}, -- #69CCF0
-			Monk = {0.00, 1.00, 0.59}, -- #00FF96
-			Paladin = {0.96, 0.55, 0.73}, -- #F58CBA
-			Priest = {1.00, 1.00, 1.00}, -- #FFFFFF
-			Rogue = {1.00, 0.96, 0.41}, -- #FFF569
-			Shaman = {0.00, 0.44, 0.87}, -- #0070DE
-			Warlock = {0.58, 0.51, 0.79}, -- #9482C9
-			Warrior = {0.78, 0.61, 0.43}, -- #C79C6E
+			Warrior = {0.78, 0.61, 0.43}, -- #C79C6E -- 1
+			Paladin = {0.96, 0.55, 0.73}, -- #F58CBA -- 2
+			Hunter = {0.67, 0.83, 0.45}, -- #ABD473 -- 3
+			Rogue = {1.00, 0.96, 0.41}, -- #FFF569 -- 4
+			Priest = {1.00, 1.00, 1.00}, -- #FFFFFF -- 5
+			DeathKnight = {0.77, 0.12, 0.23}, -- #C41F3B -- 6
+			Shaman = {0.00, 0.44, 0.87}, -- #0070DE -- 7
+			Mage = {0.41, 0.80, 0.94}, -- #69CCF0 -- 8
+			Warlock = {0.58, 0.51, 0.79}, -- #9482C9 -- 9
+			Monk = {0.00, 1.00, 0.59}, -- #00FF96 -- 10
+			Druid = {1.00 , 0.49, 0.04}, -- #FF7D0A -- 11
 			-- /dump COMBATLOG_DEFAULT_COLORS.unitColoring[32542]
 			Friendly = {0.34, 0.64, 1.00}, -- #57A3FF
 			Hostile = {0.75, 0.05, 0.05}, -- #BF0D0D
@@ -530,7 +520,7 @@ local defaults = {
 local options = {
 	type = "group",
 	childGroups = "tab",
-	name = " Ketho |cffFFFFFFCombatLog|r |cffADFF2Fv"..VERSION.."|r",
+	name = format("%s |cffADFF2Fv%s|r", "Ketho |cffFFFFFFCombatLog|r", VERSION),
 	args = {
 		Main = {
 			type = "group", order = 1,
@@ -1071,131 +1061,138 @@ local options = {
 							get = function(i) return unpack(color.Resurrection) end,
 							set = function(i, r,g,b) color.Resurrection = {r, g, b}; EventColor["RESURRECTION"] = KCL:Dec2Hex(r, g, b) end,
 						},
-						header01 = {type = "header", order = 9, name = ""},
+						header01 = {type = "header", order = 20, name = ""},
 						colorWarrior = {
 							type = "color",
-							order = 10,
+							order = 21,
 							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:4:60:4:60|t  "..LOCALIZED_CLASS_NAMES_MALE["WARRIOR"],
 							get = function(i) return unpack(color.Warrior) end,
 							set = function(i, r,g,b) color.Warrior = {r, g, b}; ClassColor["WARRIOR"] = KCL:Dec2Hex(r, g, b) end,
 						},
-						colorDeathKnight = {
-							type = "color",
-							order = 12,
-							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:68:124:133:189|t  "..LOCALIZED_CLASS_NAMES_MALE["DEATHKNIGHT"],
-							get = function(i) return unpack(color.DeathKnight) end,
-							set = function(i, r,g,b) color.DeathKnight = {r, g, b}; ClassColor["DEATHKNIGHT"] = KCL:Dec2Hex(r, g, b) end,
-						},
 						colorPaladin = {
 							type = "color",
-							order = 14,
+							order = 23,
 							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:4:60:132:188|t  "..LOCALIZED_CLASS_NAMES_MALE["PALADIN"],
 							get = function(i) return unpack(color.Paladin) end,
 							set = function(i, r,g,b) color.Paladin = {r, g, b}; ClassColor["PALADIN"] = KCL:Dec2Hex(r, g, b) end,
 						},
 						colorHunter = {
 							type = "color",
-							order = 16,
+							order = 25,
 							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:4:60:68:124|t  "..LOCALIZED_CLASS_NAMES_MALE["HUNTER"],
 							get = function(i) return unpack(color.Hunter) end,
 							set = function(i, r,g,b) color.Hunter = {r, g, b}; ClassColor["HUNTER"] = KCL:Dec2Hex(r, g, b) end,
 						},
-						colorShaman = {
-							type = "color",
-							order = 18,
-							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:68:124:68:124|t  "..LOCALIZED_CLASS_NAMES_MALE["SHAMAN"],
-							get = function(i) return unpack(color.Shaman) end,
-							set = function(i, r,g,b) color.Shaman = {r, g, b}; ClassColor["SHAMAN"] = KCL:Dec2Hex(r, g, b) end,
-						},
 						colorRogue = {
 							type = "color",
-							order = 11,
+							order = 27,
 							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:131:187:4:60|t  "..LOCALIZED_CLASS_NAMES_MALE["ROGUE"],
 							get = function(i) return unpack(color.Rogue) end,
 							set = function(i, r,g,b) color.Rogue = {r, g, b}; ClassColor["ROGUE"] = KCL:Dec2Hex(r, g, b) end,
 						},
-						colorDruid = {
-							type = "color",
-							order = 13,
-							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:194:250:4:60|t  "..LOCALIZED_CLASS_NAMES_MALE["DRUID"],
-							get = function(i) return unpack(color.Druid) end,
-							set = function(i, r,g,b) color.Druid = {r, g, b}; ClassColor["DRUID"] = KCL:Dec2Hex(r, g, b) end,
-						},
-						colorMage = {
-							type = "color",
-							order = 15,
-							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:68:124:4:60|t  "..LOCALIZED_CLASS_NAMES_MALE["MAGE"],
-							get = function(i) return unpack(color.Mage) end,
-							set = function(i, r,g,b) color.Mage = {r, g, b}; ClassColor["MAGE"] = KCL:Dec2Hex(r, g, b) end,
-						},
 						colorPriest = {
 							type = "color",
-							order = 17,
+							order = 29,
 							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:130:186:68:124|t  "..LOCALIZED_CLASS_NAMES_MALE["PRIEST"],
 							get = function(i) return unpack(color.Priest) end,
 							set = function(i, r,g,b) color.Priest = {r, g, b}; ClassColor["PRIEST"] = KCL:Dec2Hex(r, g, b) end,
 						},
+						colorDeathKnight = {
+							type = "color",
+							order = 31,
+							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:68:124:133:189|t  "..LOCALIZED_CLASS_NAMES_MALE["DEATHKNIGHT"],
+							get = function(i) return unpack(color.DeathKnight) end,
+							set = function(i, r,g,b) color.DeathKnight = {r, g, b}; ClassColor["DEATHKNIGHT"] = KCL:Dec2Hex(r, g, b) end,
+						},
+						colorShaman = {
+							type = "color",
+							order = 22,
+							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:68:124:68:124|t  "..LOCALIZED_CLASS_NAMES_MALE["SHAMAN"],
+							get = function(i) return unpack(color.Shaman) end,
+							set = function(i, r,g,b) color.Shaman = {r, g, b}; ClassColor["SHAMAN"] = KCL:Dec2Hex(r, g, b) end,
+						},
+						colorMage = {
+							type = "color",
+							order = 24,
+							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:68:124:4:60|t  "..LOCALIZED_CLASS_NAMES_MALE["MAGE"],
+							get = function(i) return unpack(color.Mage) end,
+							set = function(i, r,g,b) color.Mage = {r, g, b}; ClassColor["MAGE"] = KCL:Dec2Hex(r, g, b) end,
+						},
 						colorWarlock = {
 							type = "color",
-							order = 19,
+							order = 26,
 							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:194:250:68:124|t  "..LOCALIZED_CLASS_NAMES_MALE["WARLOCK"],
 							get = function(i) return unpack(color.Warlock) end,
 							set = function(i, r,g,b) color.Warlock = {r, g, b}; ClassColor["WARLOCK"] = KCL:Dec2Hex(r, g, b) end,
 						},
-						header02 = {type = "header", order = 20, name = ""},
+						colorMonk = {
+							type = "color",
+							order = 28,
+							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:130:186:132:188|t  "..LOCALIZED_CLASS_NAMES_MALE["MONK"],
+							get = function(i) return unpack(color.Monk) end,
+							set = function(i, r,g,b) color.Monk = {r, g, b}; ClassColor["MONK"] = KCL:Dec2Hex(r, g, b) end,
+						},
+						colorDruid = {
+							type = "color",
+							order = 30,
+							name = "|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:256:256:194:250:4:60|t  "..LOCALIZED_CLASS_NAMES_MALE["DRUID"],
+							get = function(i) return unpack(color.Druid) end,
+							set = function(i, r,g,b) color.Druid = {r, g, b}; ClassColor["DRUID"] = KCL:Dec2Hex(r, g, b) end,
+						},
+						header02 = {type = "header", order = 40, name = ""},
 						colorPhysical = {
 							type = "color",
-							order = 21,
+							order = 41,
 							name = "|TInterface\\Icons\\Spell_Nature_Strength:16:16:1:0"..cropped.."|t  "..STRING_SCHOOL_PHYSICAL,
 							get = function(i) return unpack(color.Physical) end,
 							set = function(i, r,g,b) color.Physical = {r, g, b}; SpellSchoolColor[0x1] = KCL:Dec2Hex(r, g, b) end,
 						},
 						colorHoly = {
 							type = "color",
-							order = 23,
+							order = 43,
 							name = "|TInterface\\PaperDollInfoFrame\\SpellSchoolIcon2:16:16:1:0:16:16:1:15:1:15|t  "..STRING_SCHOOL_HOLY,
 							get = function(i) return unpack(color.Holy) end,
 							set = function(i, r,g,b) color.Holy = {r, g, b}; SpellSchoolColor[0x2] = KCL:Dec2Hex(r, g, b) end,
 						},
 						colorFire = {
 							type = "color",
-							order = 25,
+							order = 45,
 							name = "|TInterface\\PaperDollInfoFrame\\SpellSchoolIcon3:16:16:1:0:16:16:1:15:1:15|t  "..STRING_SCHOOL_FIRE,
 							get = function(i) return unpack(color.Fire) end,
 							set = function(i, r,g,b) color.Fire = {r, g, b}; SpellSchoolColor[0x4] = KCL:Dec2Hex(r, g, b) end,
 						},
 						colorNature = {
 							type = "color",
-							order = 27,
+							order = 47,
 							name = "|TInterface\\PaperDollInfoFrame\\SpellSchoolIcon4:16:16:1:0:16:16:1:15:1:15|t  "..STRING_SCHOOL_NATURE,
 							get = function(i) return unpack(color.Nature) end,
 							set = function(i, r,g,b) color.Nature = {r, g, b}; SpellSchoolColor[0x8] = KCL:Dec2Hex(r, g, b) end,
 						},
 						colorFrost = {
 							type = "color",
-							order = 22,
+							order = 42,
 							name = "|TInterface\\PaperDollInfoFrame\\SpellSchoolIcon5:16:16:1:0:16:16:1:15:1:15|t  "..STRING_SCHOOL_FROST,
 							get = function(i) return unpack(color.Frost) end,
 							set = function(i, r,g,b) color.Frost = {r, g, b}; SpellSchoolColor[0x10] = KCL:Dec2Hex(r, g, b) end,
 						},
 						colorShadow = {
 							type = "color",
-							order = 24,
+							order = 44,
 							name = "|TInterface\\PaperDollInfoFrame\\SpellSchoolIcon6:16:16:1:0:16:16:1:15:1:15|t  "..STRING_SCHOOL_SHADOW,
 							get = function(i) return unpack(color.Shadow) end,
 							set = function(i, r,g,b) color.Shadow = {r, g, b}; SpellSchoolColor[0x20] = KCL:Dec2Hex(r, g, b) end,
 						},
 						colorArcane = {
 							type = "color",
-							order = 26,
+							order = 46,
 							name = "|TInterface\\PaperDollInfoFrame\\SpellSchoolIcon7:16:16:1:0:16:16:1:15:1:15|t  "..STRING_SCHOOL_ARCANE,
 							get = function(i) return unpack(color.Arcane) end,
 							set = function(i, r,g,b) color.Arcane = {r, g, b}; SpellSchoolColor[0x40] = KCL:Dec2Hex(r, g, b) end,
 						},
-						header03 = {type = "header", order = 28, name = ""},
+						header03 = {type = "header", order = 50, name = ""},
 						colorFriendly = {
 							type = "color",
-							order = 29,
+							order = 51,
 							width = "full",
 							name = "|TInterface\\Icons\\Spell_ChargePositive:16:16:1:0"..cropped.."|t  "..FRIENDLY,
 							get = function(i) return unpack(color.Friendly) end,
@@ -1203,7 +1200,7 @@ local options = {
 						},
 						colorHostile = {
 							type = "color",
-							order = 30,
+							order = 52,
 							width = "full",
 							name = "|TInterface\\Icons\\Spell_ChargeNegative:16:16:1:0"..cropped.."|t  "..HOSTILE,
 							get = function(i) return unpack(color.Hostile) end,
@@ -1211,16 +1208,16 @@ local options = {
 						},
 						colorUnknown = {
 							type = "color",
-							order = 31,
+							order = 53,
 							width = "full",
 							name = "|TInterface\\Icons\\INV_Misc_QuestionMark:16:16:1:0"..cropped.."|t  "..UNKNOWN,
 							get = function(i) return unpack(color.Unknown) end,
 							set = function(i, r,g,b) color.Unknown = {r, g, b}; UnitColor[3] = KCL:Dec2Hex(r, g, b) end,
 						},
-						spacing = {type = "description", order = 32, name = ""},
+						spacing = {type = "description", order = 60, name = ""},
 						executeReset = {
 							type = "execute",
-							order = 33,
+							order = 61,
 							descStyle = "",
 							name = "|cffFFFFFFReset Colors|r",
 							confirm = true, confirmText = "Reset Colors?",
@@ -4049,7 +4046,7 @@ local slashCmds = {"kcl", "ket", "ketho", "kethocombat", "kethocombatlog"}
 
 function KCL:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("KethoCombatLogDB", defaults, true)
-
+	
 	self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
 	self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
 	self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
@@ -4094,11 +4091,11 @@ local chatType, channel
 function KCL:OnEnable()
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("ADDON_LOADED") -- Check for Blizzard CombatLog
-
+	
 	self:ScheduleRepeatingTimer(function()
 		-- zone based, instead of group based "detection"
 		instanceType = select(2, IsInInstance())
-
+		
 		if profile.chatChannel == 2 then
 			chatType = "SAY"
 		elseif profile.chatChannel == 3 then
@@ -4109,10 +4106,10 @@ function KCL:OnEnable()
 		else
 			chatType, channel = "CHANNEL", profile.chatChannel-4
 		end
-
+		
 		if (profile.PvE and (instanceType == "party" or instanceType == "raid")) or
 		(profile.PvP and (instanceType == "pvp" or instanceType == "arena")) or
-		(profile.World and instanceType == "none") then
+		(profile.World and instanceType == "none" or not instanceType) then -- Scenario
 			instanceTypeFilter = true
 		else
 			instanceTypeFilter = false
@@ -4157,18 +4154,19 @@ function KCL:RefreshConfig()
 	}
 	
 	ClassColor = {
-		["DEATHKNIGHT"] = self:Dec2Hex(unpack(color.DeathKnight)),
-		["DRUID"] = self:Dec2Hex(unpack(color.Druid)),
-		["HUNTER"] = self:Dec2Hex(unpack(color.Hunter)),
-		["MAGE"] = self:Dec2Hex(unpack(color.Mage)),
-		["PALADIN"] = self:Dec2Hex(unpack(color.Paladin)),
-		["PRIEST"] = self:Dec2Hex(unpack(color.Priest)),
-		["ROGUE"] = self:Dec2Hex(unpack(color.Rogue)),
-		["SHAMAN"] = self:Dec2Hex(unpack(color.Shaman)),
-		["WARLOCK"] = self:Dec2Hex(unpack(color.Warlock)),
-		["WARRIOR"] = self:Dec2Hex(unpack(color.Warrior)),
+		["WARRIOR"] = self:Dec2Hex(unpack(color.Warrior)), -- 1
+		["PALADIN"] = self:Dec2Hex(unpack(color.Paladin)), -- 2
+		["HUNTER"] = self:Dec2Hex(unpack(color.Hunter)), -- 3
+		["ROGUE"] = self:Dec2Hex(unpack(color.Rogue)), -- 4
+		["PRIEST"] = self:Dec2Hex(unpack(color.Priest)), -- 5
+		["DEATHKNIGHT"] = self:Dec2Hex(unpack(color.DeathKnight)), -- 6
+		["SHAMAN"] = self:Dec2Hex(unpack(color.Shaman)), -- 7
+		["MAGE"] = self:Dec2Hex(unpack(color.Mage)), -- 8
+		["WARLOCK"] = self:Dec2Hex(unpack(color.Warlock)), -- 9
+		["MONK"] = self:Dec2Hex(unpack(color.Monk)), -- 10
+		["DRUID"] = self:Dec2Hex(unpack(color.Druid)), -- 11
 	}
-
+	
 	SpellSchoolColor = {
 		[0x1] = self:Dec2Hex(unpack(color.Physical)),
 		[0x2] = self:Dec2Hex(unpack(color.Holy)),
@@ -4673,14 +4671,7 @@ local function ResultString(schoolNameLocal, schoolNameChat, amount, overkill, c
 	return resultStringLocal, resultStringChat
 end
 
-local Time
-
-local function timeUpdater()
-	Time = time() 
-end
-local timeUpdateFrame = CreateFrame("Frame")
-timeUpdateFrame:SetScript("OnUpdate", timeUpdater)
-
+local Time = time() 
 local lastDeath
 local playerColor = GetClassColor(player.class)
 
@@ -4817,6 +4808,12 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		local Date = date(format("[%s]", TEXT_MODE_A_TIMESTAMP))
 		timestampLocal = "|cffA9A9A9"..Date.."|r "
 		timestampChat = Date.." "
+	end
+	
+	-- throttle
+	if Time > (cd.time or 0) then
+		Time = time() 
+		cd.time = Time + 0.1
 	end
 
 	---------------------
@@ -5096,11 +5093,7 @@ local dataobject = {
 		if IsModifierKeyDown() then
 			KCL:SlashCommand(KCL:IsEnabled() and "0" or "1")
 		else
-			if ACD.OpenFrames["KethoCombatLog_Parent"] then
-				ACD:Close("KethoCombatLog_Parent")
-			else
-				ACD:Open("KethoCombatLog_Parent")
-			end
+			ACD[ACD.OpenFrames.KethoCombatLog_Parent and "Close" or "Open"](ACD, "KethoCombatLog_Parent")
 		end
 	end,
 	OnTooltipShow = function(tt)
