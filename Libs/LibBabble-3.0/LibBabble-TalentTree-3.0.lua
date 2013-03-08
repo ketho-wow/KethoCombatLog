@@ -1,6 +1,6 @@
 --[[
 Name: LibBabble-TalentTree-3.0
-Revision: $Rev: 54 $
+Revision: $Rev: 56 $
 Maintainers: ckknight, nevcairiel, Ackis
 Website: http://www.wowace.com/projects/libbabble-talenttree-3-0/
 Dependencies: None
@@ -8,7 +8,7 @@ License: MIT
 ]]
 
 local MAJOR_VERSION = "LibBabble-TalentTree-3.0"
-local MINOR_VERSION = 90000 + tonumber(("$Rev: 54 $"):match("%d+"))
+local MINOR_VERSION = 90000 + tonumber(("$Rev: 56 $"):match("%d+"))
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib = LibStub("LibBabble-3.0"):New(MAJOR_VERSION, MINOR_VERSION)
@@ -98,23 +98,23 @@ elseif GAME_LOCALE == "frFR" then
 	Balance = "Equilibre",
 	["Beast Mastery"] = "Maîtrise des bêtes",
 	Blood = "Sang",
-	Brewmaster = "Maître brasseur", -- Needs review
+	Brewmaster = "Maître brasseur",
 	Combat = "Combat",
 	Demonology = "Démonologie",
 	Destruction = "Destruction",
 	Discipline = "Discipline",
 	Elemental = "Elémentaire",
 	Enhancement = "Amélioration",
-	Feral = "Farouche", -- Needs review
+	Feral = "Farouche",
 	["Feral Combat"] = "Combat farouche",
 	Fire = "Feu",
 	Frost = "Givre",
 	Fury = "Fureur",
-	Guardian = "Gardien", -- Needs review
+	Guardian = "Gardien",
 	Holy = "Sacré",
 	Hybrid = "Hybride",
 	Marksmanship = "Précision",
-	Mistweaver = "Tisse-brume", -- Needs review
+	Mistweaver = "Tisse-brume",
 	Protection = "Protection",
 	Restoration = "Restauration",
 	Retribution = "Vindicte",
@@ -122,7 +122,7 @@ elseif GAME_LOCALE == "frFR" then
 	Subtlety = "Finesse",
 	Survival = "Survie",
 	Unholy = "Impie",
-	Windwalker = "Marche-vent", -- Needs review
+	Windwalker = "Marche-vent",
 }
 elseif GAME_LOCALE == "koKR" then
 	lib:SetCurrentTranslations {
@@ -133,23 +133,23 @@ elseif GAME_LOCALE == "koKR" then
 	Balance = "조화",
 	["Beast Mastery"] = "야수",
 	Blood = "혈기",
-	Brewmaster = "양조", -- Needs review
+	Brewmaster = "양조",
 	Combat = "전투",
 	Demonology = "악마",
 	Destruction = "파괴",
 	Discipline = "수양",
 	Elemental = "정기",
 	Enhancement = "고양",
-	Feral = "야성", -- Needs review
+	Feral = "야성",
 	["Feral Combat"] = "야성",
 	Fire = "화염",
 	Frost = "냉기",
 	Fury = "분노",
-	Guardian = "수호", -- Needs review
+	Guardian = "수호",
 	Holy = "신성",
 	Hybrid = "하이브리드",
 	Marksmanship = "사격",
-	Mistweaver = "운무", -- Needs review
+	Mistweaver = "운무",
 	Protection = "방어",
 	Restoration = "복원",
 	Retribution = "징벌",
@@ -157,7 +157,7 @@ elseif GAME_LOCALE == "koKR" then
 	Subtlety = "잠행",
 	Survival = "생존",
 	Unholy = "부정",
-	Windwalker = "풍운", -- Needs review
+	Windwalker = "풍운",
 }
 elseif GAME_LOCALE == "esES" then
 	lib:SetCurrentTranslations {

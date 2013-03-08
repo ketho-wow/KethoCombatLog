@@ -1,5 +1,5 @@
-## Interface: 50001
-## Version: 1.07
+## Interface: 50200
+## Version: 1.08
 ## Title: Ketho CombatLog
 ## Notes: Ketho's Combat Log
 ## Author: Ketho @ EU-Boulderfist
@@ -28,4 +28,8 @@ Libs\LibBabble-3.0\LibBabble-TalentTree-3.0.lua
 Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 
 Locales.lua
+
 Ketho_CombatLog.lua
+Options.lua
+Core.lua
+Broker.lua

@@ -1,4 +1,4 @@
-local _, S = ...
+﻿local _, S = ...
 
 local L = {
 	deDE = {
@@ -11,6 +11,8 @@ local L = {
 	esMX = {
 	},
 	frFR = {
+	},
+	itIT = {
 	},
 	koKR = {
 	},
