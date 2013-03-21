@@ -5,6 +5,18 @@ local L = {
 	},
 	enUS = {
 		HELLO = "why hello there",
+		--[[
+		TAUNT = "",
+		CROWD_CONTROL = "",
+		INTERRUPT = "",
+		CC_BREAK = "",
+		JUKE = "",
+		DEATH = "",
+		DISPEL = "",
+		SAVE = "",
+		REFLECT = "",
+		RESURRECT = "",
+		]]
 	},
 	esES = {
 	},
