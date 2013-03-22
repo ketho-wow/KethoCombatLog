@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.09 [2013.03.22]			---
+--- Version: 1.10 [2013.03.22]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -13,7 +13,7 @@
 -- Improve Crowd Control checking
 -- DevTools style debugging, and similar way to easily announce a chatlog entry
 
---- To Do 20130321:
+--- To Do 20130322:
 -- better CUSTOM_CLASS_COLORS implementation
 -- clean up ... redo stuff
 
@@ -32,56 +32,9 @@ function KCL:RefreshDB1()
 	profile = self.db.profile
 end
 
-S.crop = ":64:64:4:60:4:60"
-
-S.Player = {
-	name = UnitName("player"),
-	class = select(2, UnitClass("player")),
-}
-local player = S.Player
-
-S.SpellName = {
-	Taunt = GetSpellInfo(355),
-	Dispel = GetSpellInfo(25808),
-	Resurrect = GetSpellInfo(2006),
-}
-
-S.SpellSchoolString = {
-	[0x1] = STRING_SCHOOL_PHYSICAL,
-	[0x2] = STRING_SCHOOL_HOLY,
-	[0x4] = STRING_SCHOOL_FIRE,
-	[0x8] = STRING_SCHOOL_NATURE,
-	[0x10] = STRING_SCHOOL_FROST,
-	[0x20] = STRING_SCHOOL_SHADOW,
-	[0x40] = STRING_SCHOOL_ARCANE,
--- double
-	[0x3] = STRING_SCHOOL_HOLYSTRIKE,
-	[0x5] = STRING_SCHOOL_FLAMESTRIKE,
-	[0x6] = STRING_SCHOOL_HOLYFIRE,
-	[0x9] = STRING_SCHOOL_STORMSTRIKE,
-	[0xA] = STRING_SCHOOL_HOLYSTORM,
-	[0xC] = STRING_SCHOOL_FIRESTORM,
-	[0x11] = STRING_SCHOOL_FROSTSTRIKE,
-	[0x12] = STRING_SCHOOL_HOLYFROST,
-	[0x14] = STRING_SCHOOL_FROSTFIRE,
-	[0x18] = STRING_SCHOOL_FROSTSTORM,
-	[0x21] = STRING_SCHOOL_SHADOWSTRIKE,
-	[0x22] = STRING_SCHOOL_SHADOWLIGHT, -- Twilight
-	[0x24] = STRING_SCHOOL_SHADOWFLAME,
-	[0x28] = STRING_SCHOOL_SHADOWSTORM, -- Plague
-	[0x30] = STRING_SCHOOL_SHADOWFROST,
-	[0x41] = STRING_SCHOOL_SPELLSTRIKE,
-	[0x42] = STRING_SCHOOL_DIVINE,
-	[0x44] = STRING_SCHOOL_SPELLFIRE,
-	[0x48] = STRING_SCHOOL_SPELLSTORM,
-	[0x50] = STRING_SCHOOL_SPELLFROST,
-	[0x60] = STRING_SCHOOL_SPELLSHADOW,
-	[0x1C] = STRING_SCHOOL_ELEMENTAL,
--- triple and more
-	[0x7C] = STRING_SCHOOL_CHROMATIC,
-	[0x7E] = STRING_SCHOOL_MAGIC,
-	[0x7F] = STRING_SCHOOL_CHAOS,
-}
+	------------
+	--- Data ---
+	------------
 
 S.Taunt = {
 	[355] = true, -- Warrior: Taunt
@@ -109,6 +62,27 @@ S.Interrupt = {
 	[80964] = true, -- Skull Bash (Bear); pre-interrupt
 	[80965] = true, -- Skull Bash (Cat); pre-interrupt
 	[93985] = true, -- Skull Bash; Interrupt
+}
+
+-- to do
+S.CrowdControl = {
+	[118] = true, -- Polymorph
+	[339] = true, -- Entangling Roots
+	[605] = true, -- Mind Control
+	[710] = true, -- Banish
+	[1513] = true, -- Scare Beast
+	[2094] = true, -- Blind
+	[2637] = true, -- Hibernate
+	[3355] = true, -- Freezing Trap
+	[5782] = true, -- Fear
+	[6358] = true, -- Seduction (Succubus)
+	[6770] = true, -- Sap
+	[9484] = true, -- Shackle Undead
+	[10326] = true, -- Turn Evil
+	[19386] = true, -- Wyvern Sting
+	[20066] = true, -- Repentance
+	[33786] = true, -- Cyclone
+	[51514] = true, -- Hex
 }
 
 S.Feast = {
@@ -160,36 +134,77 @@ S.Seasonal = {
 	[61815] = true, -- [Sprung!] Noblegarden
 }
 
-S.CrowdControl = { -- to do
-	[118] = true, -- Polymorph
-	[339] = true, -- Entangling Roots
-	[605] = true, -- Mind Control
-	[710] = true, -- Banish
-	[1513] = true, -- Scare Beast
-	[2094] = true, -- Blind
-	[2637] = true, -- Hibernate
-	[3355] = true, -- Freezing Trap
-	[5782] = true, -- Fear
-	[6358] = true, -- Seduction (Succubus)
-	[6770] = true, -- Sap
-	[9484] = true, -- Shackle Undead
-	[10326] = true, -- Turn Evil
-	[19386] = true, -- Wyvern Sting
-	[20066] = true, -- Repentance
-	[33786] = true, -- Cyclone
-	[51514] = true, -- Hex
-}
-
 --[[
 S.TankSupport = {
 	[34477] = true, -- Misdirection
 	[57934] = true, -- Tricks of the Trade
 }
 ]]
+
+S.SpellSchoolString = {
+	[0x1] = STRING_SCHOOL_PHYSICAL,
+	[0x2] = STRING_SCHOOL_HOLY,
+	[0x4] = STRING_SCHOOL_FIRE,
+	[0x8] = STRING_SCHOOL_NATURE,
+	[0x10] = STRING_SCHOOL_FROST,
+	[0x20] = STRING_SCHOOL_SHADOW,
+	[0x40] = STRING_SCHOOL_ARCANE,
+-- double
+	[0x3] = STRING_SCHOOL_HOLYSTRIKE,
+	[0x5] = STRING_SCHOOL_FLAMESTRIKE,
+	[0x6] = STRING_SCHOOL_HOLYFIRE,
+	[0x9] = STRING_SCHOOL_STORMSTRIKE,
+	[0xA] = STRING_SCHOOL_HOLYSTORM,
+	[0xC] = STRING_SCHOOL_FIRESTORM,
+	[0x11] = STRING_SCHOOL_FROSTSTRIKE,
+	[0x12] = STRING_SCHOOL_HOLYFROST,
+	[0x14] = STRING_SCHOOL_FROSTFIRE,
+	[0x18] = STRING_SCHOOL_FROSTSTORM,
+	[0x21] = STRING_SCHOOL_SHADOWSTRIKE,
+	[0x22] = STRING_SCHOOL_SHADOWLIGHT, -- Twilight
+	[0x24] = STRING_SCHOOL_SHADOWFLAME,
+	[0x28] = STRING_SCHOOL_SHADOWSTORM, -- Plague
+	[0x30] = STRING_SCHOOL_SHADOWFROST,
+	[0x41] = STRING_SCHOOL_SPELLSTRIKE,
+	[0x42] = STRING_SCHOOL_DIVINE,
+	[0x44] = STRING_SCHOOL_SPELLFIRE,
+	[0x48] = STRING_SCHOOL_SPELLSTORM,
+	[0x50] = STRING_SCHOOL_SPELLFROST,
+	[0x60] = STRING_SCHOOL_SPELLSHADOW,
+	[0x1C] = STRING_SCHOOL_ELEMENTAL,
+-- triple and more
+	[0x7C] = STRING_SCHOOL_CHROMATIC,
+	[0x7E] = STRING_SCHOOL_MAGIC,
+	[0x7F] = STRING_SCHOOL_CHAOS,
+}
+
+S.SpellName = {
+	Taunt = GetSpellInfo(355),
+	Dispel = GetSpellInfo(25808),
+	Resurrect = GetSpellInfo(2006),
+}
+
 -- in rare cases some players have 8 as the Unit Type
 S.PlayerID = {
 	[0] = true,
 	[8] = true,
+}
+
+S.STRING_REACTION_ICON = {
+	TEXT_MODE_A_STRING_SOURCE_ICON,
+	TEXT_MODE_A_STRING_DEST_ICON,
+}
+
+S.DamageEvent = {
+	SWING_DAMAGE = true,
+	RANGE_DAMAGE = true,
+	SPELL_DAMAGE = true,
+	SPELL_PERIODIC_DAMAGE = true,
+}
+
+S.HealEvent = {
+	SPELL_HEAL = true,
+	SPELL_PERIODIC_HEAL = true,
 }
 
 S.ExtraSpellEvent = {
@@ -220,23 +235,6 @@ S.EnvironmentalDamageType = {
 	FIRE = ACTION_ENVIRONMENTAL_DAMAGE_FIRE,
 	LAVA = ACTION_ENVIRONMENTAL_DAMAGE_LAVA,
 	SLIME = ACTION_ENVIRONMENTAL_DAMAGE_SLIME,
-}
-
-S.DamageEvent = {
-	SWING_DAMAGE = true,
-	RANGE_DAMAGE = true,
-	SPELL_DAMAGE = true,
-	SPELL_PERIODIC_DAMAGE = true,
-}
-
-S.HealEvent = {
-	SPELL_HEAL = true,
-	SPELL_PERIODIC_HEAL = true,
-}
-
-S.STRING_REACTION_ICON = {
-	TEXT_MODE_A_STRING_SOURCE_ICON,
-	TEXT_MODE_A_STRING_DEST_ICON,
 }
 
 -- check if a Combat Text addon is available
@@ -320,6 +318,19 @@ function S.GetClassColor(class)
 	local color = RAID_CLASS_COLORS[class]
 	return format("%02X%02X%02X",color.r*255, color.g*255, color.b*255)
 end
+
+	-------------
+	--- Stuff ---
+	-------------
+
+S.crop = ":64:64:4:60:4:60"
+
+S.Player = {
+	name = UnitName("player"),
+	class = select(2, UnitClass("player")),
+}
+local player = S.Player
+
 player.color = S.GetClassColor(player.class)
 
 	--[[
