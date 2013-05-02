@@ -88,6 +88,11 @@ function KCL:OnInitialize()
 	for _, v in ipairs({"kcl", "ket", "ketho", "kethocombat", "kethocombatlog"}) do
 		self:RegisterChatCommand(v, "SlashCommand")
 	end
+	
+	-- v1.11: changed toggle to select without renaming ..
+	if profile.Timestamp == true then
+		profile.Timestamp = 1
+	end
 end
 
 local instanceType, instanceTypeFilter
@@ -198,23 +203,14 @@ end
 	--- Raid Target ---
 	-------------------
 
--- modified from Blizzard_CombatLog
 local function UnitIcon(unitFlags, reaction)
-	local iconBit = bit_band(unitFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)
-	if iconBit == 0 then return "", "" end
+	local raidTarget = bit_band(unitFlags, COMBATLOG_OBJECT_RAIDTARGET_MASK)
+	if raidTarget == 0 then return "", "" end
 	
-	local icon
-	local iconString, braces = "", ""
-	for i = 1, 8 do
-		if iconBit == _G["COMBATLOG_OBJECT_RAIDTARGET"..i] then
-			icon = _G["COMBATLOG_ICON_RAIDTARGET"..i]
-			braces = "{"..strlower(_G["RAID_TARGET_"..i]).."}"
-			break
-		end
-	end
-	if icon then
-		iconString = format(S.STRING_REACTION_ICON[reaction], iconBit, icon)
-	end
+	local i = S.COMBATLOG_OBJECT_RAIDTARGET[raidTarget]
+	local icon = _G["COMBATLOG_ICON_RAIDTARGET"..i]
+	local braces = "{"..strlower(_G["RAID_TARGET_"..i]).."}"
+	local iconString = format(S.STRING_REACTION_ICON[reaction], raidTarget, icon)
 	return iconString, braces
 end
 
@@ -242,7 +238,7 @@ local _GetSpellLink = setmetatable({}, {__index = function(t, k)
 	return v
 end})
 
-local function GetSpellInfo(spellID, spellName, spellSchool)
+local function _GetSpellInfo(spellID, spellName, spellSchool)
 	local schoolNameLocal, schoolNameChat, schoolColor = unpack(GetSpellSchool[spellSchool])
 	local iconSize = profile.IconSize
 	local spellIcon = iconSize>1 and format("|T%s:%s:%s:0:0%s|t", GetSpellIcon[spellID], iconSize, iconSize, S.crop) or ""
@@ -311,6 +307,7 @@ local ChatArgs = {
 	icon = true, -- exception
 	xicon = true,
 }
+
 local function ReplaceArgs(args, isChat)
 	local msg = args.msg
 	for k in gmatch(msg, "%b<>") do
@@ -430,11 +427,11 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	--- Spell ---
 	-------------
 		
-		args.school, args.schoolx, args.spell, args.spellx, args.icon = GetSpellInfo(spellID, spellName, spellSchool)
+		args.school, args.schoolx, args.spell, args.spellx, args.icon = _GetSpellInfo(spellID, spellName, spellSchool)
 		args.iconx = "" -- fix
 		
 		if S.ExtraSpellEvent[subevent] then
-			args.xschool, args.xschoolx, args.xspell, args.xspellx, args.xicon = GetSpellInfo(SuffixParam1, SuffixParam2, SuffixParam3)
+			args.xschool, args.xschoolx, args.xspell, args.xspellx, args.xicon = _GetSpellInfo(SuffixParam1, SuffixParam2, SuffixParam3)
 			args.xiconx = ""
 		end
 	end
@@ -448,9 +445,9 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	--- Subevent ---
 	----------------
 		
-		if isDamageEvent and SuffixParam2 > 0 and (destName ~= lastDeath or time() > (cd.death or 0)) then
+		if isDamageEvent and SuffixParam2 > 0 and (destGUID ~= lastDeath or time() > (cd.death or 0)) then
 			cd.death = time() + 1
-			lastDeath = destName
+			lastDeath = destGUID
 			SetMessageArgs(subevent == "SWING_DAMAGE" and "Death_Melee" or "Death")
 		end
 		
@@ -505,10 +502,9 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 				end
 			else
 				local taunt = S.Taunt[spellID] and IsEvent("Taunt")
-				local isDeathGripPlayer = (spellID == 49560 and destType == 0) -- dat spam
 				local interrupt = S.Interrupt[spellID] and IsEvent("Interrupt")
 				local crowdcontrol = S.CrowdControl[spellID] and IsEvent("CrowdControl")
-				if profile.MissAll or (taunt and not isDeathGripPlayer) or interrupt or crowdcontrol then
+				if (profile.MissAll or taunt or interrupt or crowdcontrol) and not S.Blacklist[spellID] then
 					args.type = S.MissType[SuffixParam1] or SuffixParam1
 					SetMessageArgs("Miss")
 				end
@@ -526,7 +522,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 				SetMessageArgs("Break_Spell")
 			end
 		elseif subevent == "SPELL_INSTAKILL" then
-			if spellID ~= 48743 and IsEvent("Death") then -- Death Knight [Death Pact] 
+			if IsEvent("Death") and not S.Blacklist[spellID] then
 				SetMessageArgs("Death_Instakill")
 			end
 		elseif subevent == "ENVIRONMENTAL_DAMAGE" then
@@ -576,10 +572,8 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 				args.destx = args.destx:gsub(braces, "")
 			end
 			
-			local textLocal = ReplaceArgs(args)
-			local textChat = ReplaceArgs(args, true)
-			textLocal = args.time..textLocal..resultString
-			textChat = args.timex..textChat..resultString
+			local textLocal = args.time..ReplaceArgs(args)..resultString
+			local textChat = args.timex..ReplaceArgs(args, true)..resultString
 			
 			if profile.ChatWindow > 1 then
 				S.ChatFrame:AddMessage(textLocal, unpack(args.color))

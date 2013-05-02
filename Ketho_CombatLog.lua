@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.11 [2013.04.29]			---
+--- Version: 1.12 [2013.05.02]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -109,6 +109,13 @@ S.CrowdControl = {
 S.Save = {
 	[48153] = true, -- Priest: [Guardian Spirit]
 	[66235] = true, -- Paladin: [Ardent Defender]
+}
+
+S.Blacklist = {
+	[48743] = true, -- SPELL_INSTAKILL, Death Knight: [Death Pact] 
+	[49560] = true, -- SPELL_MISSED, Death Knight: [Death Grip] 
+	[81280] = true, -- SPELL_INSTAKILL, Death Knight: Bloodworm: [Blood Burst]
+	[108503] = true, -- SPELL_INSTAKILL, Warlock: [Grimoire of Sacrifice]
 }
 
 S.Feast = {
@@ -230,11 +237,6 @@ S.NPCID = {
 	[3] = true, -- NPC
 	[4] = true, -- pet
 	[5] = true, -- vehicle
-}
-
-S.STRING_REACTION_ICON = {
-	TEXT_MODE_A_STRING_SOURCE_ICON,
-	TEXT_MODE_A_STRING_DEST_ICON,
 }
 
 S.DamageEvent = {
@@ -451,9 +453,9 @@ for k, v in pairs(S.RemapSchoolColor) do
 	S.RemapSchoolColorRev[v] = k
 end
 
-	--------------------
-	--- Color Caches ---
-	--------------------
+	-------------
+	--- Color ---
+	-------------
 
 -- only for class colors
 S.ClassColor = setmetatable({}, {__index = function(t, k)
@@ -485,6 +487,20 @@ function KCL:WipeCache()
 	wipe(S.ClassColor)
 	wipe(S.SpellSchoolColor)
 	wipe(S.GeneralColor)
+end
+
+	-------------------
+	--- Raid Target ---
+	-------------------
+
+S.STRING_REACTION_ICON = {
+	TEXT_MODE_A_STRING_SOURCE_ICON,
+	TEXT_MODE_A_STRING_DEST_ICON,
+}
+
+S.COMBATLOG_OBJECT_RAIDTARGET = {}
+for i = 1, 8 do
+	S.COMBATLOG_OBJECT_RAIDTARGET[_G["COMBATLOG_OBJECT_RAIDTARGET"..i]] = i
 end
 
 	-----------------
