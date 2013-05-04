@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.12 [2013.05.02]			---
+--- Version: 1.13 [2013.05.04]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -12,10 +12,9 @@
 -- If you notice variables defined which are only just used once, then it's for readability ..
 
 --- To Do: 20130429
--- Localization
 -- Add spells again
--- Improve Crowd Control
 -- Improve CUSTOM_CLASS_COLORS implementation
+-- Improve Crowd Control
 
 local NAME, S = ...
 S.VERSION = GetAddOnMetadata(NAME, "Version")
@@ -24,6 +23,8 @@ S.BUILD = "Release"
 KethoCombatLog = LibStub("AceAddon-3.0"):NewAddon("KethoCombatLog", "AceEvent-3.0", "AceTimer-3.0", "AceConsole-3.0", "LibSink-2.0")
 local KCL = KethoCombatLog
 KethoCombatLog.S = S -- debug purpose
+
+local L = S.L
 
 local profile
 
@@ -227,7 +228,7 @@ S.SpellSchoolString = {
 	[0x7F] = STRING_SCHOOL_CHAOS,
 }
 
--- in rare cases some players have 8 as the Unit Type
+-- in some cases players can have 8 as the Unit Type
 S.PlayerID = {
 	[0] = true,
 	[8] = true,
@@ -312,7 +313,7 @@ S.Event = {
 	[10] = "Resurrect",
 }
 
-S.EventMsg = {
+S.EventMsg = { -- options order
 	"Taunt",
 	"Taunt_AoE",
 	"Growl",
@@ -335,27 +336,26 @@ S.EventMsg = {
 	"Resurrect",
 }
 
--- ToDo: localization
 S.EventString = {
 	Taunt = {GetSpellInfo(355), "Spell_Nature_Reincarnation"},
 	Taunt_AoE = {GetSpellInfo(355).." (AoE)", "Ability_BullRush"},
 	Growl = {GetSpellInfo(2649), "Ability_Physical_Taunt"},
 	Interrupt = {INTERRUPT, "Ability_Kick"},
-	Juke = {"Juke", "Spell_Frost_IceShock"},
+	Juke = {L.EVENT_JUKE, "Spell_Frost_IceShock"},
 	Dispel = {GetSpellInfo(25808), "Spell_Holy_DispelMagic"},
 	Cleanse = {GetSpellInfo(4987), "Spell_Holy_Purify"},
 	Spellsteal = {GetSpellInfo(30449), "Spell_Arcane_Arcane02"},
 	Reflect = {REFLECT, "Ability_Warrior_ShieldReflection"},
 	Miss = {MISS, "Ability_Hunter_MasterMarksman"},
-	CrowdControl = {"Crowd Control", "Spell_Nature_Polymorph"},
-	Break_Spell = {GetSpellInfo(82881).." (Spell)", "Spell_Shadow_ShadowWordPain"},
-	Break = {GetSpellInfo(82881), "Ability_Seal"},
-	Break_NoSource = {GetSpellInfo(82881).." (No "..SOURCE:gsub(":","")..")", "INV_Misc_QuestionMark"},
+	CrowdControl = {L.EVENT_CROWDCONTROL, "Spell_Nature_Polymorph"},
+	Break_Spell = {L.EVENT_BREAK.." (Spell)", "Spell_Shadow_ShadowWordPain"},
+	Break = {L.EVENT_BREAK, "Ability_Seal"},
+	Break_NoSource = {L.EVENT_BREAK.." (No "..SOURCE:gsub(":","")..")", "INV_Misc_QuestionMark"},
 	Death = {TUTORIAL_TITLE25, "Ability_Rogue_FeignDeath"},
 	Death_Melee = {TUTORIAL_TITLE25.." ("..ACTION_SWING..")", "Spell_Holy_FistOfJustice"},
 	Death_Environmental = {TUTORIAL_TITLE25.." ("..ENVIRONMENTAL_DAMAGE..")", "Spell_Shaman_LavaFlow"},
 	Death_Instakill = {TUTORIAL_TITLE25.." (Instakill)", "INV_Misc_Bone_HumanSkull_01"},
-	Save = {"Save", "Spell_Holy_GuardianSpirit"},
+	Save = {L.EVENT_SAVE, "Spell_Holy_GuardianSpirit"},
 	Resurrect = {GetSpellInfo(2006), "Spell_Holy_Resurrection"},
 }
 

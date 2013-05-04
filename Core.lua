@@ -14,13 +14,16 @@ local player = S.Player
 
 local cd = {}
 local args = {}
+local units = {}
 
 local _G = _G
 local unpack = unpack
 local tonumber = tonumber
-local strsub, format = strsub, format
+local strsub, strmatch, format = strsub, strmatch, format
 local bit_band = bit.band
 
+local UnitName, UnitClass = UnitName, UnitClass
+local UnitInParty, UnitInRaid = UnitInParty, UnitInRaid
 local GetSpellInfo, GetSpellLink = GetSpellInfo, GetSpellLink
 
 local COMBATLOG_OBJECT_RAIDTARGET_MASK = COMBATLOG_OBJECT_RAIDTARGET_MASK
@@ -95,12 +98,20 @@ function KCL:OnInitialize()
 	end
 end
 
-local instanceType, instanceTypeFilter
+local instanceType, instanceFilter
 local chatType, channel
 
 function KCL:OnEnable()
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	self:RegisterEvent("ADDON_LOADED") -- Check for Blizzard CombatLog
+	
+	-- ToDo: BlizzardCombatLog still gets re-enabled
+	if not profile.BlizzardCombatLog then
+		if COMBATLOG then
+			COMBATLOG:UnregisterEvent("COMBAT_LOG_EVENT")
+		else
+			self:RegisterEvent("ADDON_LOADED") -- Check for Blizzard CombatLog
+		end
+	end
 	
 	self:ScheduleRepeatingTimer(function()
 		-- zone based, instead of group based "detection"
@@ -120,11 +131,17 @@ function KCL:OnEnable()
 		if (profile.PvE and (instanceType == "party" or instanceType == "raid"))
 			or (profile.PvP and (instanceType == "pvp" or instanceType == "arena"))
 			or (profile.World and instanceType == "none" or not instanceType) then -- Scenario
-			instanceTypeFilter = true
+			instanceFilter = true
 		else
-			instanceTypeFilter = false
+			instanceFilter = false
 		end
 	end, 5)
+end
+
+function KCL:OnDisable()
+	-- maybe superfluous
+	self:UnregisterAllEvents()
+	self:CancelAllTimers()
 end
 
 function KCL:RefreshDB()
@@ -281,7 +298,8 @@ local function IsChatEvent(event)
 	return profile[(profile.ChatFilter and "Chat" or "Local")..event]
 end
 
-local function TankFilter(event, isTank)
+local function TankFilter(event, unit)
+	local isTank = (UnitGroupRolesAssigned(unit) == "TANK")
 	return not isTank or profile["Tank"..event]
 end
 
@@ -314,7 +332,7 @@ local function ReplaceArgs(args, isChat)
 		-- remove <>, make case insensitive
 		local s = strlower(gsub(k, "[<>]", ""))
 		-- escape special characters
-		s = gsub(args[isChat and ChatArgs[s] and s.."x" or s] or s, "(%p)", "%%%1")
+		s = gsub(args[isChat and ChatArgs[s] and s.."x" or s] or UNKNOWN, "(%p)", "%%%1")
 		k = gsub(k, "(%p)", "%%%1")
 		msg = msg:gsub(k, s)
 	end
@@ -330,12 +348,14 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = ...
 	
 	wipe(args)
+	wipe(units)
+	
+	local sourceType = tonumber(strsub(sourceGUID, 5, 5))
+	local destType = tonumber(strsub(destGUID, 5, 5))
 	
 	local isDamageEvent = S.DamageEvent[subevent]
 	local isReflectEvent = (subevent == "SPELL_MISSED" and select(15, ...) == "Reflect")
 	local isReverseEvent = isDamageEvent or isReflectEvent
-	local sourceType = tonumber(strsub(sourceGUID, 5, 5))
-	local destType = tonumber(strsub(destGUID, 5, 5))
 	
 	--------------
 	--- Filter ---
@@ -358,29 +378,25 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	--- Unit ---
 	------------
 	
-	local sourceNameTrim, destNameTrim = "", ""
-	
-	local sourceIconLocal, sourceIconChat = UnitIcon(sourceRaidFlags, 1)
-	local destIconLocal, destIconChat = UnitIcon(destRaidFlags, 2)
-	
+	-- reaction also used in SPELL_DISPEL
 	local sourceReaction = UnitReaction(sourceFlags)
 	local destReaction = UnitReaction(destFlags)
 	
+	units[UnitName("target") or 1] = "target"
+	units[UnitName("focus") or 2] = "focus"
+	
 	if sourceName then
-		-- trim out realm name; only do this for players, to avoid false positives for certain npcs
-		sourceNameTrim = (profile.TrimRealmName and S.PlayerID[sourceType]) and strmatch(sourceName, "([^%-]+)%-?.*") or sourceName
+		-- trim out (CRZ) realm name; only do this for players, to avoid false positives for certain npcs
+		local sourceNameTrim = (profile.TrimRealmName and S.PlayerID[sourceType]) and strmatch(sourceName, "([^%-]+)%-?.*") or sourceName
+		local sourceIconLocal, sourceIconChat = UnitIcon(sourceRaidFlags, 1)
 		local name, color = sourceNameTrim
+		
 		if sourceName == player.name then
 			color, name = player.color, UNIT_YOU_SOURCE
 		elseif UnitInParty(sourceName) or UnitInRaid(sourceName) then
-			color = S.ClassColor[select(2,UnitClass(sourceName))]
-		-- CRZ source/destName include the realm name
-		elseif sourceType == 0 and (sourceNameTrim == UnitName("target") or sourceNameTrim == UnitName("focus")) then
-			if sourceNameTrim == UnitName("target") then
-				color = S.ClassColor[select(2,UnitClass("target"))]
-			elseif sourceNameTrim == UnitName("focus") then
-				color = S.ClassColor[select(2,UnitClass("focus"))]
-			end
+			color = S.ClassColor[select(2,UnitClass(sourceName))] -- by name
+		elseif S.PlayerID[sourceType] and units[sourceNameTrim] then
+			color = S.ClassColor[select(2,UnitClass(units[sourceNameTrim]))] -- by unit id
 		else
 			color = S.GeneralColor[sourceReaction]
 		end
@@ -389,22 +405,20 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	end
 	
 	if destName then
-		destNameTrim = (profile.TrimRealmName and S.PlayerID[destType]) and strmatch(destName, "([^%-]+)%-?.*") or destName
+		local destNameTrim = (profile.TrimRealmName and S.PlayerID[destType]) and strmatch(destName, "([^%-]+)%-?.*") or destName
+		local destIconLocal, destIconChat = UnitIcon(destRaidFlags, 2)
 		local name, color = destNameTrim
+		
 		if destName == player.name then
 			color, name = player.color, UNIT_YOU_DEST
 		elseif UnitInParty(destName) or UnitInRaid(destName) then
 			color = S.ClassColor[select(2,UnitClass(destName))]
-		elseif destType == 0 and (destNameTrim == UnitName("target") or destNameTrim == UnitName("focus")) then
-			if destNameTrim == UnitName("target") then
-				color = S.ClassColor[select(2,UnitClass("target"))]
-			elseif destNameTrim == UnitName("focus") then
-				color = S.ClassColor[select(2,UnitClass("focus"))]
-			end
+		elseif S.PlayerID[destType] and units[destNameTrim] then
+			color = S.ClassColor[select(2,UnitClass(units[destNameTrim]))]
 		else
 			color = S.GeneralColor[destReaction]
 		end
-		args.dest = format("|cff%s"..TEXT_MODE_A_STRING_DEST_UNIT.."|r", color, destIconLocal, destGUID, "["..destNameTrim.."]", "["..(destName==sourceName and "Self" or name).."]")
+		args.dest = format("|cff%s"..TEXT_MODE_A_STRING_DEST_UNIT.."|r", color, destIconLocal, destGUID, "["..destNameTrim.."]", "["..(destName==sourceName and L.SELF or name).."]")
 		args.destx = format("%s[%s]", destIconChat, destNameTrim)
 	end
 	
@@ -436,23 +450,20 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	end
 	
-	
-	if instanceTypeFilter then
+	if instanceFilter then
 		
-		local isTank = (UnitGroupRolesAssigned(sourceName) == "TANK")
+	-------------
+	--- Event ---
+	-------------
 		
-	----------------
-	--- Subevent ---
-	----------------
-		
-		if isDamageEvent and SuffixParam2 > 0 and (destGUID ~= lastDeath or time() > (cd.death or 0)) then
-			cd.death = time() + 1
-			lastDeath = destGUID
-			SetMessageArgs(subevent == "SWING_DAMAGE" and "Death_Melee" or "Death")
-		end
-		
-		if subevent == "SPELL_CAST_SUCCESS" then
-			if S.Taunt_AoE[spellID] and IsEvent("Taunt") and TankFilter("Taunt", isTank) then
+		if isDamageEvent then
+			if SuffixParam2 > 0 and (destGUID ~= lastDeath or time() > (cd.death or 0)) then
+				cd.death = time() + 1
+				lastDeath = destGUID
+				SetMessageArgs(subevent == "SWING_DAMAGE" and "Death_Melee" or "Death")
+			end
+		elseif subevent == "SPELL_CAST_SUCCESS" then
+			if S.Taunt_AoE[spellID] and IsEvent("Taunt") and TankFilter("Taunt", sourceName) then
 				SetMessageArgs("Taunt_AoE")
 			elseif S.Growl[spellID] and S.NPCID[destType] and profile.PetGrowl then
 				SetMessageArgs("Growl")
@@ -460,7 +471,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 				self:IneffectiveInterrupt(...)
 			end
 		elseif subevent == "SPELL_AURA_APPLIED" then
-			if S.Taunt[spellID] and S.NPCID[destType] and IsEvent("Taunt") and TankFilter("Taunt", isTank) then
+			if S.Taunt[spellID] and S.NPCID[destType] and IsEvent("Taunt") and TankFilter("Taunt", sourceName) then
 				SetMessageArgs("Taunt")
 			elseif S.CrowdControl[spellID] and IsEvent("CrowdControl") then
 				SetMessageArgs("CrowdControl")
@@ -514,16 +525,12 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 				end
 			end
 		elseif subevent == "SPELL_AURA_BROKEN" then
-			if IsEvent("Break") then
+			if IsEvent("Break") and TankFilter("Break", sourceName) then
 				SetMessageArgs(sourceName and "Break_NoSource" or "Break")
 			end
 		elseif subevent == "SPELL_AURA_BROKEN_SPELL" then
-			if IsEvent("Break") then
+			if IsEvent("Break") and TankFilter("Break", sourceName) then
 				SetMessageArgs("Break_Spell")
-			end
-		elseif subevent == "SPELL_INSTAKILL" then
-			if IsEvent("Death") and not S.Blacklist[spellID] then
-				SetMessageArgs("Death_Instakill")
 			end
 		elseif subevent == "ENVIRONMENTAL_DAMAGE" then
 			local environmentalType, amount = select(12, ...)
@@ -533,24 +540,28 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 				args.type = S.EnvironmentalDamageType[environmentalType] or environmentalType
 				SetMessageArgs("Death_Environmental")
 			end
+		elseif subevent == "SPELL_INSTAKILL" then
+			if IsEvent("Death") and not S.Blacklist[spellID] then
+				SetMessageArgs("Death_Instakill")
+			end
 		elseif subevent == "SPELL_HEAL" then
 			if S.Save[spellID] and IsEvent("Save") then
 				SetMessageArgs("Save")
 			end
 		elseif subevent == "SPELL_RESURRECT" then
-			-- todo: add better check, this is kinda lazy
+			-- ToDo: add better check, this is kinda lazy
 			if IsEvent("Resurrect") and not profile.BattleRez or (profile.BattleRez and UnitAffectingCombat("player")) then
 				SetMessageArgs("Resurrect")
 			end
 		end
 		
+	---------------
+	--- Message ---
+	---------------
+		
 		-- check if there is any message
 		if args.msg then
 			
-	--------------
-	--- Output ---
-	--------------
-	
 			-- timestamp; possibility to also use as an arg
 			args.time, args.timex = S.GetTimestamp()
 			
@@ -561,19 +572,24 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			
 			-- remove braces again; except timestamp
 			if not profile.UnitBracesLocal then
-				args.src = args.src:gsub(braces, "")
-				args.dest = args.dest:gsub(braces, "")
+				-- src and dest args can be nil in rare cases
+				args.src = args.src and args.src:gsub(braces, "")
+				args.dest = args.dest and args.dest:gsub(braces, "")
 				-- spell strings can be nil
 				args.spell = args.spell and args.spell:gsub(braces, " ")
 				args.xspell = args.xspell and args.xspell:gsub(braces, " ")
 			end
 			if not profile.UnitBracesChat then
-				args.srcx = args.srcx:gsub(braces, "")
-				args.destx = args.destx:gsub(braces, "")
+				args.srcx = args.srcx and args.srcx:gsub(braces, "")
+				args.destx = args.destx and args.destx:gsub(braces, "")
 			end
 			
 			local textLocal = args.time..ReplaceArgs(args)..resultString
 			local textChat = args.timex..ReplaceArgs(args, true)..resultString
+			
+	--------------
+	--- Output ---
+	--------------
 			
 			if profile.ChatWindow > 1 then
 				S.ChatFrame:AddMessage(textLocal, unpack(args.color))
