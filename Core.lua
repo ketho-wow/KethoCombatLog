@@ -12,18 +12,15 @@ local color, spell
 
 local player = S.Player
 
-local cd = {}
-local args = {}
-local units = {}
-
 local _G = _G
-local unpack = unpack
 local tonumber = tonumber
+local unpack = unpack
+local time = time
 local strsub, strmatch, format = strsub, strmatch, format
+local wipe = wipe
 local bit_band = bit.band
 
-local UnitName, UnitClass = UnitName, UnitClass
-local UnitInParty, UnitInRaid = UnitInParty, UnitInRaid
+local GetPlayerInfoByGUID = GetPlayerInfoByGUID
 local GetSpellInfo, GetSpellLink = GetSpellInfo, GetSpellLink
 
 local COMBATLOG_OBJECT_RAIDTARGET_MASK = COMBATLOG_OBJECT_RAIDTARGET_MASK
@@ -39,8 +36,10 @@ local TEXT_MODE_A_STRING_RESULT_CRITICAL = TEXT_MODE_A_STRING_RESULT_CRITICAL
 local TEXT_MODE_A_STRING_RESULT_GLANCING = TEXT_MODE_A_STRING_RESULT_GLANCING
 local TEXT_MODE_A_STRING_RESULT_CRUSHING = TEXT_MODE_A_STRING_RESULT_CRUSHING
 
-local lastDeath
+local args = {}
+local deaths = {}
 local braces = "[%[%]]"
+local chatType
 
 	------------
 	--- Ace3 ---
@@ -92,19 +91,22 @@ function KCL:OnInitialize()
 		self:RegisterChatCommand(v, "SlashCommand")
 	end
 	
-	-- v1.11: changed toggle to select without renaming ..
+	-- v1.11: changed toggle widget to select widget without renaming ..
 	if profile.Timestamp == true then
 		profile.Timestamp = 1
 	end
 end
 
-local instanceType, instanceFilter
-local chatType, channel
-
 function KCL:OnEnable()
-	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	-- controls COMBAT_LOG_EVENT_UNFILTERED
+	self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+	self:ZONE_CHANGED_NEW_AREA()
 	
-	-- ToDo: BlizzardCombatLog still gets re-enabled
+	-- controls chatType
+	self:RegisterEvent("GROUP_ROSTER_UPDATE")
+	self:GROUP_ROSTER_UPDATE()
+	
+	-- To Do: BlizzardCombatLog still gets re-enabled
 	if not profile.BlizzardCombatLog then
 		if COMBATLOG then
 			COMBATLOG:UnregisterEvent("COMBAT_LOG_EVENT")
@@ -113,41 +115,26 @@ function KCL:OnEnable()
 		end
 	end
 	
-	self:ScheduleRepeatingTimer(function()
-		-- zone based, instead of group based "detection"
-		instanceType = select(2, IsInInstance())
-		
-		if profile.ChatChannel == 2 then
-			chatType = "SAY"
-		elseif profile.ChatChannel == 3 then
-			chatType = "YELL"
-		elseif profile.ChatChannel == 4 then
-			-- don't want to spam to BATTLEGROUND, if people really want to announce to there, they can still use LibSink
-			chatType = IsPartyLFG() and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup() and "PARTY"
-		else
-			chatType, channel = "CHANNEL", profile.ChatChannel-4
-		end
-		
-		if (profile.PvE and (instanceType == "party" or instanceType == "raid"))
-			or (profile.PvP and (instanceType == "pvp" or instanceType == "arena"))
-			or (profile.World and instanceType == "none" or not instanceType) then -- Scenario
-			instanceFilter = true
-		else
-			instanceFilter = false
-		end
-	end, 5)
+	-- support [Class Colors] by Phanx
+	if CUSTOM_CLASS_COLORS then
+		CUSTOM_CLASS_COLORS:RegisterCallback("WipeCache", self)
+	end
 end
 
 function KCL:OnDisable()
 	-- maybe superfluous
 	self:UnregisterAllEvents()
 	self:CancelAllTimers()
+	
+	if CUSTOM_CLASS_COLORS then
+		CUSTOM_CLASS_COLORS:UnregisterCallback("WipeCache", self)
+	end
 end
 
 function KCL:RefreshDB()
 	-- table shortcuts
 	profile, char = self.db.profile, self.db.char
-	color, spell = profile.color, profile.spell
+	color = profile.color
 	
 	for i = 1, 2 do -- refresh db in other files
 		self["RefreshDB"..i](self)
@@ -202,6 +189,31 @@ function KCL:ADDON_LOADED(event, addon)
 	end
 end
 
+function KCL:ZONE_CHANGED_NEW_AREA(event)
+	local instanceType = select(2, IsInInstance())
+	
+	local pve = profile.PvE and (instanceType == "party" or instanceType == "raid")
+	local pvp = profile.PvP and (instanceType == "pvp" or instanceType == "arena")
+	local world = profile.World and instanceType == "none" or not instanceType -- Scenario
+	
+	self[(pve or pvp or world) and "RegisterEvent" or "UnregisterEvent"](self, "COMBAT_LOG_EVENT_UNFILTERED")
+end
+
+function KCL:GROUP_ROSTER_UPDATE(event)
+	local p = profile.ChatChannel
+	
+	if p == 2 then
+		chatType = "SAY"
+	elseif p == 3 then
+		chatType = "YELL"
+	elseif p == 4 then
+		-- exclude BATTLEGROUND, there still is LibSink if ppl really want to spam battleground
+		chatType = IsPartyLFG() and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup() and "PARTY"
+	elseif p >= 5 then
+		chatType = "CHANNEL"
+	end
+end
+
 	----------------
 	--- Reaction ---
 	----------------
@@ -226,9 +238,9 @@ local function UnitIcon(unitFlags, reaction)
 	
 	local i = S.COMBATLOG_OBJECT_RAIDTARGET[raidTarget]
 	local icon = _G["COMBATLOG_ICON_RAIDTARGET"..i]
-	local braces = "{"..strlower(_G["RAID_TARGET_"..i]).."}"
 	local iconString = format(S.STRING_REACTION_ICON[reaction], raidTarget, icon)
-	return iconString, braces
+	local chat = "{"..strlower(_G["RAID_TARGET_"..i]).."}"
+	return iconString, chat
 end
 
 	-------------
@@ -348,10 +360,12 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = ...
 	
 	wipe(args)
-	wipe(units)
 	
 	local sourceType = tonumber(strsub(sourceGUID, 5, 5))
 	local destType = tonumber(strsub(destGUID, 5, 5))
+	
+	local sourcePlayer = sourceType and (bit_band(sourceType, 0x7) == 0)
+	local destPlayer = destType and (bit_band(destType, 0x7) == 0)
 	
 	local isDamageEvent = S.DamageEvent[subevent]
 	local isReflectEvent = (subevent == "SPELL_MISSED" and select(15, ...) == "Reflect")
@@ -368,7 +382,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	end
 	
 	-- the other way round for for death/reflect events
-	if (isReverseEvent and S.PlayerID[destType]) or (not isReverseEvent and S.PlayerID[sourceType]) then
+	if (isReverseEvent and destPlayer) or (not isReverseEvent and sourcePlayer) then
 		if not profile.FilterPlayers then return end
 	else
 		if not profile.FilterMonsters then return end
@@ -382,44 +396,35 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local sourceReaction = UnitReaction(sourceFlags)
 	local destReaction = UnitReaction(destFlags)
 	
-	units[UnitName("target") or 1] = "target"
-	units[UnitName("focus") or 2] = "focus"
-	
 	if sourceName then
 		-- trim out (CRZ) realm name; only do this for players, to avoid false positives for certain npcs
-		local sourceNameTrim = (profile.TrimRealmName and S.PlayerID[sourceType]) and strmatch(sourceName, "([^%-]+)%-?.*") or sourceName
+		local name = (profile.TrimRealm and sourcePlayer) and strmatch(sourceName, "([^%-]+)%-?.*") or sourceName
+		local fname = (sourceName == player.name) and UNIT_YOU_SOURCE or name
 		local sourceIconLocal, sourceIconChat = UnitIcon(sourceRaidFlags, 1)
-		local name, color = sourceNameTrim
+		local color = S.GeneralColor[sourceReaction]
 		
-		if sourceName == player.name then
-			color, name = player.color, UNIT_YOU_SOURCE
-		elseif UnitInParty(sourceName) or UnitInRaid(sourceName) then
-			color = S.ClassColor[select(2,UnitClass(sourceName))] -- by name
-		elseif S.PlayerID[sourceType] and units[sourceNameTrim] then
-			color = S.ClassColor[select(2,UnitClass(units[sourceNameTrim]))] -- by unit id
-		else
-			color = S.GeneralColor[sourceReaction]
+		if sourcePlayer and (profile.ColorEnemy or not profile.ColorEnemy and sourceReaction == "Friendly") then
+			local class = select(2,GetPlayerInfoByGUID(sourceGUID))
+			color = class and S.ClassColor[class] or color
 		end
-		args.src = format("|cff%s"..TEXT_MODE_A_STRING_SOURCE_UNIT.."|r", color, sourceIconLocal, sourceGUID, "["..sourceNameTrim.."]", "["..name.."]")
-		args.srcx = format("%s[%s]", sourceIconChat, sourceNameTrim)
+		
+		args.src = format("|cff%s"..TEXT_MODE_A_STRING_SOURCE_UNIT.."|r", color, sourceIconLocal, sourceGUID, sourceName, "["..fname.."]")
+		args.srcx = format("%s[%s]", sourceIconChat, name)
 	end
 	
 	if destName then
-		local destNameTrim = (profile.TrimRealmName and S.PlayerID[destType]) and strmatch(destName, "([^%-]+)%-?.*") or destName
+		local name = (profile.TrimRealm and destPlayer) and strmatch(destName, "([^%-]+)%-?.*") or destName
+		local fname = (destName == player.name) and UNIT_YOU_DEST or (destName == sourceName) and L.SELF or name
 		local destIconLocal, destIconChat = UnitIcon(destRaidFlags, 2)
-		local name, color = destNameTrim
+		local color = S.GeneralColor[destReaction]
 		
-		if destName == player.name then
-			color, name = player.color, UNIT_YOU_DEST
-		elseif UnitInParty(destName) or UnitInRaid(destName) then
-			color = S.ClassColor[select(2,UnitClass(destName))]
-		elseif S.PlayerID[destType] and units[destNameTrim] then
-			color = S.ClassColor[select(2,UnitClass(units[destNameTrim]))]
-		else
-			color = S.GeneralColor[destReaction]
+		if destPlayer and (profile.ColorEnemy or not profile.ColorEnemy and destReaction == "Friendly") then
+			local class = select(2,GetPlayerInfoByGUID(destGUID))
+			color = class and S.ClassColor[class] or color
 		end
-		args.dest = format("|cff%s"..TEXT_MODE_A_STRING_DEST_UNIT.."|r", color, destIconLocal, destGUID, "["..destNameTrim.."]", "["..(destName==sourceName and L.SELF or name).."]")
-		args.destx = format("%s[%s]", destIconChat, destNameTrim)
+		
+		args.dest = format("|cff%s"..TEXT_MODE_A_STRING_DEST_UNIT.."|r", color, destIconLocal, destGUID, destName, "["..fname.."]")
+		args.destx = format("%s[%s]", destIconChat, name)
 	end
 	
 	--------------
@@ -450,186 +455,186 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		end
 	end
 	
-	if instanceFilter then
-		
 	-------------
 	--- Event ---
 	-------------
-		
-		if isDamageEvent then
-			if SuffixParam2 > 0 and (destGUID ~= lastDeath or time() > (cd.death or 0)) then
-				cd.death = time() + 1
-				lastDeath = destGUID
-				SetMessageArgs(subevent == "SWING_DAMAGE" and "Death_Melee" or "Death")
-			end
-		elseif subevent == "SPELL_CAST_SUCCESS" then
-			if S.Taunt_AoE[spellID] and IsEvent("Taunt") and TankFilter("Taunt", sourceName) then
-				SetMessageArgs("Taunt_AoE")
-			elseif S.Growl[spellID] and S.NPCID[destType] and profile.PetGrowl then
-				SetMessageArgs("Growl")
-			elseif S.Interrupt[spellID] and IsEvent("Juke") then
-				self:IneffectiveInterrupt(...)
-			end
-		elseif subevent == "SPELL_AURA_APPLIED" then
-			if S.Taunt[spellID] and S.NPCID[destType] and IsEvent("Taunt") and TankFilter("Taunt", sourceName) then
-				SetMessageArgs("Taunt")
-			elseif S.CrowdControl[spellID] and IsEvent("CrowdControl") then
+	
+	if isDamageEvent then
+		-- throttle deaths per guid
+		if SuffixParam2 > 0 and time() > (deaths[destGUID] or 0) then
+			deaths[destGUID] = time() + 1
+			SetMessageArgs(subevent == "SWING_DAMAGE" and "Death_Melee" or "Death")
+		end
+	elseif subevent == "SPELL_CAST_SUCCESS" then
+		if S.Taunt_AoE[spellID] and IsEvent("Taunt") and TankFilter("Taunt", sourceName) then
+			SetMessageArgs("Taunt_AoE")
+		elseif S.Growl[spellID] and S.NPCID[destType] and profile.PetGrowl then
+			SetMessageArgs("Growl")
+		elseif S.Interrupt[spellID] and IsEvent("Juke") then
+			self:Juke(...)
+		end
+	elseif subevent == "SPELL_AURA_APPLIED" then
+		if S.Taunt[spellID] and S.NPCID[destType] and IsEvent("Taunt") and TankFilter("Taunt", sourceName) then
+			SetMessageArgs("Taunt")
+		elseif S.CrowdControl[spellID] and IsEvent("CrowdControl") then
+			if not (destGUID == sourceGUID and S.CrowdControlDouble[spellID]) then
 				SetMessageArgs("CrowdControl")
 			end
-		elseif subevent == "SPELL_INTERRUPT" then
-			if IsEvent("Interrupt") then
-				SetMessageArgs("Interrupt")
-			end
-			if IsEvent("Juke") then
-				self:IneffectiveInterrupt(...)
-			end
-		elseif subevent == "SPELL_INEFFECTIVE_INTERRUPT" then
-			-- not needed to check event options
-			SetMessageArgs("Juke")
-		elseif subevent == "SPELL_DISPEL" then
-			if IsEvent("Dispel") then
-				local friendly = (sourceReaction == "Friendly" and destReaction == sourceReaction)
-				local hostile = (sourceReaction == "Hostile" and destReaction == sourceReaction)
-				-- cleanses between two (friendly/hostile) units
-				-- bug: its not possible to see whether 2 friendly units are hostile to each other, ie dueling
-				if friendly or hostile then
-					if profile.FriendlyDispel then
-						SetMessageArgs("Cleanse")
-					end
-				else
-					if profile.HostileDispel then
-						SetMessageArgs("Dispel")
-					end
-				end
-			end
-		elseif subevent == "SPELL_STOLEN" then
-			if IsEvent("Dispel") and profile.Spellsteal then
-				SetMessageArgs("Spellsteal")
-			end
-		elseif subevent == "SPELL_MISSED" then
-			if SuffixParam1 == "Reflect" then
-				if IsEvent("Reflect") then
-					SetMessageArgs("Reflect")
+		end
+	elseif subevent == "SPELL_INTERRUPT" then
+		if IsEvent("Interrupt") then
+			SetMessageArgs("Interrupt")
+		end
+		if IsEvent("Juke") then
+			self:Juke(...)
+		end
+	elseif subevent == "SPELL_JUKE" then
+		-- not needed to check event options
+		SetMessageArgs("Juke")
+	elseif subevent == "SPELL_DISPEL" then
+		if IsEvent("Dispel") then
+			local friendly = (sourceReaction == "Friendly" and destReaction == sourceReaction)
+			local hostile = (sourceReaction == "Hostile" and destReaction == sourceReaction)
+			-- cleanses between two (friendly/hostile) units
+			-- bug: its not possible to see whether 2 friendly units are hostile to each other, ie dueling
+			if friendly or hostile then
+				if profile.FriendlyDispel then
+					SetMessageArgs("Cleanse")
 				end
 			else
-				local taunt = S.Taunt[spellID] and IsEvent("Taunt")
-				local interrupt = S.Interrupt[spellID] and IsEvent("Interrupt")
-				local crowdcontrol = S.CrowdControl[spellID] and IsEvent("CrowdControl")
-				if (profile.MissAll or taunt or interrupt or crowdcontrol) and not S.Blacklist[spellID] then
-					args.type = S.MissType[SuffixParam1] or SuffixParam1
-					SetMessageArgs("Miss")
+				if profile.HostileDispel then
+					SetMessageArgs("Dispel")
 				end
-				-- check if the interrupt failed, instead of being wasted
-				if S.Interrupt[spellID] and IsEvent("Juke") then
-					self:IneffectiveInterrupt(...)
-				end
-			end
-		elseif subevent == "SPELL_AURA_BROKEN" then
-			if IsEvent("Break") and TankFilter("Break", sourceName) then
-				SetMessageArgs(sourceName and "Break_NoSource" or "Break")
-			end
-		elseif subevent == "SPELL_AURA_BROKEN_SPELL" then
-			if IsEvent("Break") and TankFilter("Break", sourceName) then
-				SetMessageArgs("Break_Spell")
-			end
-		elseif subevent == "ENVIRONMENTAL_DAMAGE" then
-			local environmentalType, amount = select(12, ...)
-			-- sometimes destName is nil; overkill never exceeds 0, workaround with UnitHealth
-			if destName and UnitHealth(destName) == 1 and IsEvent("Death") then
-				args.amount = amount
-				args.type = S.EnvironmentalDamageType[environmentalType] or environmentalType
-				SetMessageArgs("Death_Environmental")
-			end
-		elseif subevent == "SPELL_INSTAKILL" then
-			if IsEvent("Death") and not S.Blacklist[spellID] then
-				SetMessageArgs("Death_Instakill")
-			end
-		elseif subevent == "SPELL_HEAL" then
-			if S.Save[spellID] and IsEvent("Save") then
-				SetMessageArgs("Save")
-			end
-		elseif subevent == "SPELL_RESURRECT" then
-			-- ToDo: add better check, this is kinda lazy
-			if IsEvent("Resurrect") and not profile.BattleRez or (profile.BattleRez and UnitAffectingCombat("player")) then
-				SetMessageArgs("Resurrect")
 			end
 		end
-		
+	elseif subevent == "SPELL_STOLEN" then
+		if IsEvent("Dispel") and profile.Spellsteal then
+			SetMessageArgs("Spellsteal")
+		end
+	elseif subevent == "SPELL_MISSED" then
+		if SuffixParam1 == "REFLECT" then
+			if IsEvent("Reflect") then
+				SetMessageArgs("Reflect")
+			end
+		else
+			local taunt = S.Taunt[spellID] and IsEvent("Taunt")
+			local interrupt = S.Interrupt[spellID] and IsEvent("Interrupt")
+			local crowdcontrol = S.CrowdControl[spellID] and IsEvent("CrowdControl")
+			if (profile.MissAll or taunt or interrupt or crowdcontrol) and not S.Blacklist[spellID] then
+				args.type = S.MissType[SuffixParam1] or SuffixParam1
+				SetMessageArgs("Miss")
+			end
+			-- check if the interrupt failed, instead of being wasted
+			if S.Interrupt[spellID] and IsEvent("Juke") then
+				self:Juke(...)
+			end
+		end
+	elseif subevent == "SPELL_AURA_BROKEN" then
+		if IsEvent("Break") and TankFilter("Break", sourceName) then
+			SetMessageArgs(sourceName and "Break_NoSource" or "Break")
+		end
+	elseif subevent == "SPELL_AURA_BROKEN_SPELL" then
+		if IsEvent("Break") and TankFilter("Break", sourceName) then
+			SetMessageArgs("Break_Spell")
+		end
+	elseif subevent == "ENVIRONMENTAL_DAMAGE" then
+		local environmentalType, amount = select(12, ...)
+		-- sometimes destName is nil; overkill never exceeds 0, workaround with UnitHealth
+		if destName and UnitHealth(destName) == 1 and IsEvent("Death") then
+			args.amount = amount
+			args.type = S.EnvironmentalDamageType[environmentalType] or environmentalType
+			SetMessageArgs("Death_Environmental")
+		end
+	elseif subevent == "SPELL_INSTAKILL" then
+		if IsEvent("Death") and not S.Blacklist[spellID] then
+			SetMessageArgs("Death_Instakill")
+		end
+	elseif subevent == "SPELL_HEAL" then
+		if S.Save[spellID] and IsEvent("Save") then
+			SetMessageArgs("Save")
+		end
+	elseif subevent == "SPELL_RESURRECT" then
+		-- To Do: add better check, this is kinda lazy
+		if IsEvent("Resurrect") and not profile.BattleRez or (profile.BattleRez and UnitAffectingCombat("player")) then
+			SetMessageArgs("Resurrect")
+		end
+	end
+	
 	---------------
 	--- Message ---
 	---------------
+	
+	-- check if there is any message
+	if args.msg then
 		
-		-- check if there is any message
-		if args.msg then
-			
-			-- timestamp; possibility to also use as an arg
-			args.time, args.timex = S.GetTimestamp()
-			
-			local resultString = ""
-			if isDamageEvent or S.HealEvent[subevent] then
-				resultString = GetResultString(SuffixParam2, SuffixParam7, SuffixParam8, SuffixParam9)
-			end
-			
-			-- remove braces again; except timestamp
-			if not profile.UnitBracesLocal then
-				-- src and dest args can be nil in rare cases
-				args.src = args.src and args.src:gsub(braces, "")
-				args.dest = args.dest and args.dest:gsub(braces, "")
-				-- spell strings can be nil
-				args.spell = args.spell and args.spell:gsub(braces, " ")
-				args.xspell = args.xspell and args.xspell:gsub(braces, " ")
-			end
-			if not profile.UnitBracesChat then
-				args.srcx = args.srcx and args.srcx:gsub(braces, "")
-				args.destx = args.destx and args.destx:gsub(braces, "")
-			end
-			
-			local textLocal = args.time..ReplaceArgs(args)..resultString
-			local textChat = args.timex..ReplaceArgs(args, true)..resultString
-			
+		-- timestamp; possibility to also use as an arg
+		args.time, args.timex = S.GetTimestamp()
+		
+		local resultString = ""
+		if isDamageEvent or S.HealEvent[subevent] then
+			resultString = GetResultString(SuffixParam2, SuffixParam7, SuffixParam8, SuffixParam9)
+		end
+		
+		-- remove braces again; except timestamp
+		if not profile.UnitBracesLocal then
+			-- src and dest args can be nil in rare cases
+			args.src = args.src and args.src:gsub(braces, "")
+			args.dest = args.dest and args.dest:gsub(braces, "")
+			-- spell strings can be nil
+			args.spell = args.spell and args.spell:gsub(braces, " ")
+			args.xspell = args.xspell and args.xspell:gsub(braces, " ")
+		end
+		if not profile.UnitBracesChat then
+			args.srcx = args.srcx and args.srcx:gsub(braces, "")
+			args.destx = args.destx and args.destx:gsub(braces, "")
+		end
+		
+		local textLocal = args.time..ReplaceArgs(args)..resultString
+		local textChat = args.timex..ReplaceArgs(args, true)..resultString
+		
 	--------------
 	--- Output ---
 	--------------
-			
-			if profile.ChatWindow > 1 then
-				S.ChatFrame:AddMessage(textLocal, unpack(args.color))
-			end
-			
-			-- don't default to "SAY" if chatType is nil
-			if args.chat and profile.ChatChannel > 1 and chatType then
-				local isTalk = S.Talk[chatType]
-				local isDead = UnitIsDead("player") or UnitIsGhost("player")
-				
-				if not (isDead and isTalk) then -- avoid ERR_CHAT_WHILE_DEAD
-					SendChatMessage(textChat, chatType, nil, channel)
-				end
-			end
-			
-			-- LibSink
-			self:Pour(profile.sink20OutputSink == "Channel" and textChat or textLocal, unpack(args.color))
+		
+		if profile.ChatWindow > 1 then
+			S.ChatFrame:AddMessage(textLocal, unpack(args.color))
 		end
+		
+		-- don't default to "SAY" if chatType is nil
+		if args.chat and profile.ChatChannel > 1 and chatType then
+			local isTalk = S.Talk[chatType]
+			local isDead = UnitIsDead("player") or UnitIsGhost("player")
+			
+			if not (isDead and isTalk) then -- avoid ERR_CHAT_WHILE_DEAD
+				SendChatMessage(textChat, chatType, nil, profile.ChatChannel-4)
+			end
+		end
+		
+		-- LibSink
+		self:Pour(profile.sink20OutputSink == "Channel" and textChat or textLocal, unpack(args.color))
 	end
 end
 
-	------------------------------
-	--- Ineffective Interrupts ---
-	------------------------------
+	------------
+	--- Juke ---
+	------------
 
-local InterruptCheck = {}
-function KCL:IneffectiveInterrupt(timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool)
-	if subevent == "SPELL_CAST_SUCCESS" then
-		InterruptCheck[sourceGUID] = true
-		subevent = "CHECK_INEFFECTIVE_INTERRUPT"
-		-- SPELL_INTERRUPT can have around 0.4~ sec delay/lag (in most cases)
-		self:ScheduleTimer(function()
-			self:IneffectiveInterrupt(timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool)
-		end, 0.4)
-	elseif subevent == "SPELL_INTERRUPT" or subevent == "SPELL_MISSED" then
-		InterruptCheck[sourceGUID] = false
-	elseif subevent == "CHECK_INEFFECTIVE_INTERRUPT" then
-		if InterruptCheck[sourceGUID] then
-			self:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, "SPELL_INEFFECTIVE_INTERRUPT", hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool)
+local Interrupt = {}
+
+function KCL:Juke(timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool)
+	if subevent == "SPELL_CAST_SUCCESS" then -- casted
+		Interrupt[sourceGUID] = true
+		self:ScheduleTimer(function() -- wait for SPELL_INTERRUPT delay/lag
+			self:Juke(timestamp, "CHECK_JUKE", hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool)
+		end, .5)
+	
+	elseif subevent == "SPELL_INTERRUPT" or subevent == "SPELL_MISSED" then -- succesful or failed
+		Interrupt[sourceGUID] = false
+	
+	elseif subevent == "CHECK_JUKE" then
+		if Interrupt[sourceGUID] then -- wasted
+			self:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, "SPELL_JUKE", hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool)
 		end
-		InterruptCheck[sourceGUID] = false
+		Interrupt[sourceGUID] = false
 	end
 end

@@ -1,6 +1,6 @@
 --[[
 Name: LibBabble-TalentTree-3.0
-Revision: $Rev: 56 $
+Revision: $Rev: 60 $
 Maintainers: ckknight, nevcairiel, Ackis
 Website: http://www.wowace.com/projects/libbabble-talenttree-3-0/
 Dependencies: None
@@ -8,7 +8,7 @@ License: MIT
 ]]
 
 local MAJOR_VERSION = "LibBabble-TalentTree-3.0"
-local MINOR_VERSION = 90000 + tonumber(("$Rev: 56 $"):match("%d+"))
+local MINOR_VERSION = 90000 + tonumber(("$Rev: 60 $"):match("%d+"))
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib = LibStub("LibBabble-3.0"):New(MAJOR_VERSION, MINOR_VERSION)
@@ -343,23 +343,23 @@ elseif GAME_LOCALE == "zhCN" then
 	Balance = "平衡",
 	["Beast Mastery"] = "野兽控制",
 	Blood = "鲜血",
-	Brewmaster = "酒仙", -- Needs review
+	Brewmaster = "酒仙",
 	Combat = "战斗",
 	Demonology = "恶魔学识",
 	Destruction = "毁灭",
 	Discipline = "戒律",
 	Elemental = "元素战斗",
 	Enhancement = "增强",
-	Feral = "野性", -- Needs review
+	Feral = "野性",
 	["Feral Combat"] = "野性战斗",
 	Fire = "火焰",
 	Frost = "冰霜",
 	Fury = "狂怒",
-	Guardian = "守护", -- Needs review
+	Guardian = "守护",
 	Holy = "神圣",
 	Hybrid = "混合",
 	Marksmanship = "射击",
-	Mistweaver = "织雾", -- Needs review
+	Mistweaver = "织雾",
 	Protection = "防护",
 	Restoration = "恢复",
 	Retribution = "惩戒",
@@ -367,7 +367,7 @@ elseif GAME_LOCALE == "zhCN" then
 	Subtlety = "敏锐",
 	Survival = "生存技能",
 	Unholy = "邪恶",
-	Windwalker = "踏风", -- Needs review
+	Windwalker = "踏风",
 }
 elseif GAME_LOCALE == "zhTW" then
 	lib:SetCurrentTranslations {
@@ -378,23 +378,23 @@ elseif GAME_LOCALE == "zhTW" then
 	Balance = "平衡",
 	["Beast Mastery"] = "野獸控制",
 	Blood = "血魄",
-	Brewmaster = "釀酒", -- Needs review
+	Brewmaster = "釀酒",
 	Combat = "戰鬥",
 	Demonology = "惡魔學識",
 	Destruction = "毀滅",
 	Discipline = "戒律",
 	Elemental = "元素",
 	Enhancement = "增強",
-	Feral = "野性戰鬥", -- Needs review
+	Feral = "野性戰鬥",
 	["Feral Combat"] = "野性戰鬥",
 	Fire = "火焰",
 	Frost = "冰霜",
 	Fury = "狂怒",
-	Guardian = "守護者", -- Needs review
+	Guardian = "守護者",
 	Holy = "神聖",
 	Hybrid = "混合",
 	Marksmanship = "射擊",
-	Mistweaver = "織霧", -- Needs review
+	Mistweaver = "織霧",
 	Protection = "防護",
 	Restoration = "恢復",
 	Retribution = "懲戒",
@@ -402,7 +402,7 @@ elseif GAME_LOCALE == "zhTW" then
 	Subtlety = "敏銳",
 	Survival = "生存",
 	Unholy = "穢邪",
-	Windwalker = "御風", -- Needs review
+	Windwalker = "御風",
 }
 
 else

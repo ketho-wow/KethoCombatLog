@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.13 [2013.05.04]			---
+--- Version: 1.14 [2013.05.23]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -11,10 +11,8 @@
 -- This is my first addon, and was my introduction to programming/scripting
 -- If you notice variables defined which are only just used once, then it's for readability ..
 
---- To Do: 20130429
--- Add spells again
--- Improve CUSTOM_CLASS_COLORS implementation
--- Improve Crowd Control
+--- To Do: 20130521
+-- Add "Spells" again
 
 local NAME, S = ...
 S.VERSION = GetAddOnMetadata(NAME, "Version")
@@ -95,7 +93,7 @@ S.CrowdControl = {
 	[10326] = true, -- [Turn Evil]
 	[20066] = true, -- [Repentance]
 -- Priest
-	[605] = true, -- [Mind Control]
+	[605] = true, -- [Dominate Mind]
 	[5782] = true, -- [Fear]
 	[9484] = true, -- [Shackle Undead]
 -- Rogue
@@ -105,6 +103,11 @@ S.CrowdControl = {
 	[710] = true, -- [Banish]
 	[6358] = true, -- [Seduction] (Succubus)
 	[51514] = true, -- [Hex]
+}
+
+-- dest buff applied to both the target unit and source unit
+S.CrowdControlDouble = {
+	[605] = true, -- [Dominate Mind]
 }
 
 S.Save = {
@@ -226,12 +229,6 @@ S.SpellSchoolString = {
 	[0x7C] = STRING_SCHOOL_CHROMATIC,
 	[0x7E] = STRING_SCHOOL_MAGIC,
 	[0x7F] = STRING_SCHOOL_CHAOS,
-}
-
--- in some cases players can have 8 as the Unit Type
-S.PlayerID = {
-	[0] = true,
-	[8] = true,
 }
 
 S.NPCID = {
@@ -459,7 +456,7 @@ end
 
 -- only for class colors
 S.ClassColor = setmetatable({}, {__index = function(t, k)
-	local color = CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[k] or profile.color[k]
+	local color = (CUSTOM_CLASS_COLORS or profile.color)[k]
 	local v = format("%02X%02X%02X", color.r*255, color.g*255, color.b*255)
 	rawset(t, k, v)
 	return v
@@ -558,7 +555,7 @@ end
 S.IconValues[16] = " 16  |cffFBDB00("..DEFAULT..")|r"
 
 function S.GetClassColor(class)
-	local color = RAID_CLASS_COLORS[class]
+	local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
 	return format("%02X%02X%02X",color.r*255, color.g*255, color.b*255)
 end
 
