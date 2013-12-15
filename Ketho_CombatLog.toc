@@ -1,5 +1,5 @@
-## Interface: 50300
-## Version: 1.14
+## Interface: 50400
+## Version: 1.15
 ## Title: Ketho CombatLog
 ## Notes: Ketho's Combat Log
 ## Author: Ketho @ EU-Boulderfist

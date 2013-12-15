@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.14 [2013.05.23]			---
+--- Version: 1.15 [2013.12.15]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -10,9 +10,6 @@
 --- Notes:
 -- This is my first addon, and was my introduction to programming/scripting
 -- If you notice variables defined which are only just used once, then it's for readability ..
-
---- To Do: 20130521
--- Add "Spells" again
 
 local NAME, S = ...
 S.VERSION = GetAddOnMetadata(NAME, "Version")
@@ -186,12 +183,6 @@ S.Seasonal = {
 -- Rest
 	[61781] = true, -- [Turkey Feathers] Pilgrim's Bounty
 	[61815] = true, -- [Sprung!] Noblegarden
-}
-
-S.TankSupport = {
-	[34477] = true, -- Misdirection
-	[57934] = true, -- Tricks of the Trade
-	[110588] = true, -- Misdirection, balance druid via symbiosis
 }
 
 S.SpellSchoolString = {
