@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.15 [2013.12.15]			---
+--- Version: 1.16 [2014.04.10]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -34,7 +34,6 @@ end
 S.Taunt = {
 	[355] = true, -- Warrior: [Taunt]
 	[6795] = true, -- Druid: [Growl]
-	[17735] = true, -- Warlock: [Suffering] (Voidwalker)
 	[20736] = true, -- Hunter: [Distracting Shot]
 	[116189] = true, -- Monk: [Provoke]; 115546
 -- Death Knight
@@ -46,15 +45,9 @@ S.Taunt = {
 	[62124] = true, -- [Hand of Reckoning]
 }
 
--- wtf .. removed?
-S.Taunt_AoE = {
-	[1161] = true, -- Warrior: [Challenging Shout]
-	[5209] = true, -- Druid: [Challenging Roar]
-}
-
-S.Growl = {
+S.PetTaunt = {
 	[2649] = true, -- Pet: [Growl]
-	[17735] = true, -- Voidwalker: [Suffering]
+	[17735] = true, -- Warlock: [Suffering] (Voidwalker)
 	[36213] = true, -- Greater Earth Elemental: [Angered Earth]
 }
 
@@ -72,7 +65,6 @@ S.Interrupt = {
 	[93985] = true, -- [Skull Bash; Interrupt
 }
 
--- to do
 S.CrowdControl = {
 -- Druid
 	[339] = true, -- [Entangling Roots]
@@ -228,11 +220,32 @@ S.NPCID = {
 	[5] = true, -- vehicle
 }
 
+S.PvE = {
+	party = true,
+	raid = true,
+	scenario = true,
+}
+
+S.PvP = {
+	pvp = true,
+	arena = true,
+}
+
 S.DamageEvent = {
 	SWING_DAMAGE = true,
+	--SWING_MISSED = true,
 	RANGE_DAMAGE = true,
+	--RANGE_MISSED = true,
 	SPELL_DAMAGE = true,
+	--SPELL_MISSED = true, -- sometimes a spell is absorbed but still fatal
 	SPELL_PERIODIC_DAMAGE = true,
+	--SPELL_PERIODIC_MISSED = true,
+	ENVIRONMENTAL_DAMAGE = true,
+}
+
+S.MissEvent = {
+	REFLECT = true,
+	ABSORB = true,
 }
 
 S.HealEvent = {
@@ -303,8 +316,6 @@ S.Event = {
 
 S.EventMsg = { -- options order
 	"Taunt",
-	"Taunt_AoE",
-	"Growl",
 	"Interrupt",
 	"Juke",
 	"Dispel",
@@ -326,8 +337,6 @@ S.EventMsg = { -- options order
 
 S.EventString = {
 	Taunt = {GetSpellInfo(355), "Spell_Nature_Reincarnation"},
-	Taunt_AoE = {GetSpellInfo(355).." (AoE)", "Ability_BullRush"},
-	Growl = {GetSpellInfo(2649), "Ability_Physical_Taunt"},
 	Interrupt = {INTERRUPT, "Ability_Kick"},
 	Juke = {L.EVENT_JUKE, "Spell_Frost_IceShock"},
 	Dispel = {GetSpellInfo(25808), "Spell_Holy_DispelMagic"},
@@ -348,8 +357,6 @@ S.EventString = {
 }
 
 S.EventGroup = {
-	Taunt_AoE = "Taunt",
-	Growl = "Taunt",
 	Cleanse = "Dispel",
 	Spellsteal = "Dispel",
 	Miss = "Reflect",

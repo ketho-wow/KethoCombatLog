@@ -1,5 +1,5 @@
 ## Interface: 50400
-## Version: 1.15
+## Version: 1.16
 ## Title: Ketho CombatLog
 ## Notes: Ketho's Combat Log
 ## Author: Ketho @ EU-Boulderfist
@@ -22,9 +22,6 @@ Libs\AceConfig-3.0\AceConfig-3.0.xml
 Libs\LibSink-2.0\lib.xml
 #@end-no-lib-strip@
 
-Libs\LibBabble-3.0\LibBabble-3.0.lua
-Libs\LibBabble-3.0\LibBabble-Race-3.0.lua
-Libs\LibBabble-3.0\LibBabble-TalentTree-3.0.lua
 Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 
 Locales.lua

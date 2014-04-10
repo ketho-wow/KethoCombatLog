@@ -7,35 +7,34 @@ local L = {
 		EVENT_BREAK = GetSpellInfo(82881), -- "Break"
 		EVENT_SAVE = "Save",
 		
-		MSG_TAUNT = "<SRC><SPELL><ICON> taunted <DEST>",
-		MSG_TAUNT_AOE = "<SRC><SPELL><ICON> AoE "..GetSpellInfo(355), -- "Taunt"
-		MSG_GROWL = "<SRC><SPELL><ICON> growled <DEST>",
+		MSG_TAUNT = "<SRC><SPELL> taunted <DEST>",
 		
-		MSG_INTERRUPT = "<SRC><SPELL><ICON> "..ACTION_SPELL_INTERRUPT.." <DEST><XSPELL><XICON>",
-		MSG_JUKE = "<SRC> juked <SPELL><ICON> on <DEST>",
+		MSG_INTERRUPT = "<SRC><SPELL> "..ACTION_SPELL_INTERRUPT.." <DEST><XSPELL>",
+		MSG_JUKE = "<SRC> juked <SPELL> on <DEST>",
 		
-		MSG_DISPEL = "<SRC><SPELL><ICON> "..ACTION_SPELL_DISPEL_BUFF.." <DEST><XSPELL><XICON>",
-		MSG_CLEANSE = "<SRC><SPELL><ICON> "..ACTION_SPELL_DISPEL_DEBUFF.." <DEST><XSPELL><XICON>",
-		MSG_SPELLSTEAL = "<SRC><SPELL><ICON> "..ACTION_SPELL_STOLEN.." <DEST><XSPELL><XICON>",
+		MSG_DISPEL = "<SRC><SPELL> "..ACTION_SPELL_DISPEL_BUFF.." <DEST><XSPELL>",
+		MSG_CLEANSE = "<SRC><SPELL> "..ACTION_SPELL_DISPEL_DEBUFF.." <DEST><XSPELL>",
+		MSG_SPELLSTEAL = "<SRC><SPELL> "..ACTION_SPELL_STOLEN.." <DEST><XSPELL>",
 		
-		MSG_REFLECT = "<DEST> "..ACTION_SPELL_MISSED_REFLECT.." <SRC><SPELL><ICON>",
-		MSG_MISS = "<SRC><SPELL><ICON> on <DEST> "..ACTION_SPELL_CAST_FAILED.." (<TYPE>)",
+		MSG_REFLECT = "<DEST> "..ACTION_SPELL_MISSED_REFLECT.." <SRC><SPELL>",
+		MSG_MISS = "<SRC><SPELL> on <DEST> "..ACTION_SPELL_CAST_FAILED.." (<TYPE>)",
 		
-		MSG_CROWDCONTROL = "<SRC><SPELL><ICON> CC'ed <DEST>",
-		MSG_BREAK = "<SRC> "..ACTION_SPELL_AURA_BROKEN.." <SPELL><ICON> on <DEST>",
-		MSG_BREAK_NOSOURCE = "<SPELL><ICON> on <DEST> "..ACTION_SPELL_AURA_BROKEN,
-		MSG_BREAK_SPELL = "<SRC><SPELL><ICON> "..ACTION_SPELL_AURA_BROKEN.." <XSPELL><XICON> on <DEST>",
+		MSG_CROWDCONTROL = "<SRC><SPELL> CC'ed <DEST>",
+		MSG_BREAK = "<SRC> "..ACTION_SPELL_AURA_BROKEN.." <SPELL> on <DEST>",
+		MSG_BREAK_NOSOURCE = "<SPELL> on <DEST> "..ACTION_SPELL_AURA_BROKEN,
+		MSG_BREAK_SPELL = "<SRC><SPELL> "..ACTION_SPELL_AURA_BROKEN.." <XSPELL> on <DEST>",
 		
-		MSG_DEATH = "<DEST> "..ACTION_UNIT_DIED.." <SRC><SPELL><ICON> <AMOUNT> <SCHOOL>",
+		MSG_DEATH = "<DEST> "..ACTION_UNIT_DIED.." <SRC><SPELL> <AMOUNT> <SCHOOL>",
 		MSG_DEATH_MELEE = "<DEST> "..ACTION_UNIT_DIED.." <SRC> <AMOUNT> "..ACTION_SWING,
 		MSG_DEATH_ENVIRONMENTAL = "<DEST> "..ACTION_UNIT_DIED.." <AMOUNT> <TYPE>",
-		MSG_DEATH_INSTAKILL = "<SRC><SPELL><ICON> "..ACTION_SPELL_INSTAKILL.." <DEST>",
+		MSG_DEATH_INSTAKILL = "<SRC><SPELL> "..ACTION_SPELL_INSTAKILL.." <DEST>",
 		
-		MSG_SAVE = "<SRC><SPELL><ICON> saved <DEST> <AMOUNT> <SCHOOL>",
-		MSG_RESURRECT = "<SRC><SPELL><ICON> "..ACTION_SPELL_RESURRECT.." <DEST>",
+		MSG_SAVE = "<SRC><SPELL> saved <DEST> <AMOUNT> <SCHOOL>",
+		MSG_RESURRECT = "<SRC><SPELL> "..ACTION_SPELL_RESURRECT.." <DEST>",
 		
 		SELF = "Self",
 		
+		ABBREVIATE_LARGE_NUMBERS = "Abbreviate Large Numbers",
 		USE_CLASS_COLORS = "Please use the |cff71D5FFClass Colors|r AddOn",
 		BROKER_CLICK = "|cffFFFFFFClick|r to open the options menu",
 		BROKER_SHIFT_CLICK = "|cffFFFFFFShift-click|r to toggle this AddOn",
@@ -45,28 +44,27 @@ local L = {
 		EVENT_CROWDCONTROL = "Crowd Control", -- Needs review
 		EVENT_JUKE = "Verschwendung", -- Needs review
 		EVENT_SAVE = "Rettung", -- Needs review
-		MSG_BREAK = "<SRC> brach <SPELL><ICON> auf <DEST>", -- Needs review
-		MSG_BREAK_NOSOURCE = "<SPELL><ICON> auf <DEST> brach", -- Needs review
-		MSG_BREAK_SPELL = "<SRC><SPELL><ICON> brach <XSPELL><XICON> auf <DEST>", -- Needs review
-		MSG_CLEANSE = "<SRC><SPELL><ICON> reinigte <DEST><XSPELL><XICON>", -- Needs review
-		MSG_CROWDCONTROL = "<SRC><SPELL><ICON> CC'ed <DEST>", -- Needs review
-		MSG_DEATH = "<DEST> starb <SRC><SPELL><ICON> <AMOUNT> <SCHOOL>", -- Needs review
+		MSG_BREAK = "<SRC> brach <SPELL> auf <DEST>", -- Needs review
+		MSG_BREAK_NOSOURCE = "<SPELL> auf <DEST> brach", -- Needs review
+		MSG_BREAK_SPELL = "<SRC><SPELL> brach <XSPELL> auf <DEST>", -- Needs review
+		MSG_CLEANSE = "<SRC><SPELL> reinigte <DEST><XSPELL>", -- Needs review
+		MSG_CROWDCONTROL = "<SRC><SPELL> CC'ed <DEST>", -- Needs review
+		MSG_DEATH = "<DEST> starb <SRC><SPELL> <AMOUNT> <SCHOOL>", -- Needs review
 		MSG_DEATH_ENVIRONMENTAL = "<DEST> starb <AMOUNT> <TYPE>", -- Needs review
-		MSG_DEATH_INSTAKILL = "<SRC><SPELL><ICON> tötete <DEST>", -- Needs review
+		MSG_DEATH_INSTAKILL = "<SRC><SPELL> tötete <DEST>", -- Needs review
 		MSG_DEATH_MELEE = "<DEST> starb <SRC> <AMOUNT> Nahkampf", -- Needs review
-		MSG_DISPEL = "<SRC><SPELL><ICON> entzauberte <DEST><XSPELL><XICON>", -- Needs review
-		MSG_GROWL = "<SRC><SPELL><ICON> knurrte <DEST>", -- Needs review
-		MSG_INTERRUPT = "<SRC><SPELL><ICON> unterbrach <DEST><XSPELL><XICON>", -- Needs review
-		MSG_JUKE = "<SRC> verschwendete <SPELL><ICON> on <DEST>", -- Needs review
-		MSG_MISS = "<SRC><SPELL><ICON> verfehlte <DEST> (<TYPE>)", -- Needs review
-		MSG_REFLECT = "<DEST> reflektierte <SRC><SPELL><ICON>", -- Needs review
-		MSG_RESURRECT = "<SRC><SPELL><ICON> belebte <DEST> wieder", -- Needs review
-		MSG_SAVE = "<SRC><SPELL><ICON> rettete <DEST> <AMOUNT> <SCHOOL>", -- Needs review
-		MSG_SPELLSTEAL = "<SRC><SPELL><ICON> stahl <DEST><XSPELL><XICON>", -- Needs review
-		MSG_TAUNT = "<SRC><SPELL><ICON> spottet <DEST>", -- Needs review
-		MSG_TAUNT_AOE = "<SRC><SPELL><ICON> AoE Spott", -- Needs review
+		MSG_DISPEL = "<SRC><SPELL> entzauberte <DEST><XSPELL>", -- Needs review
+		MSG_INTERRUPT = "<SRC><SPELL> unterbrach <DEST><XSPELL>", -- Needs review
+		MSG_JUKE = "<SRC> verschwendete <SPELL> on <DEST>", -- Needs review
+		MSG_MISS = "<SRC><SPELL> verfehlte <DEST> (<TYPE>)", -- Needs review
+		MSG_REFLECT = "<DEST> reflektierte <SRC><SPELL>", -- Needs review
+		MSG_RESURRECT = "<SRC><SPELL> belebte <DEST> wieder", -- Needs review
+		MSG_SAVE = "<SRC><SPELL> rettete <DEST> <AMOUNT> <SCHOOL>", -- Needs review
+		MSG_SPELLSTEAL = "<SRC><SPELL> stahl <DEST><XSPELL>", -- Needs review
+		MSG_TAUNT = "<SRC><SPELL> spottet <DEST>", -- Needs review
 		SELF = "Selbst", -- Needs review
 		
+		ABBREVIATE_LARGE_NUMBERS = "Kürze lange Zahlen",
 		USE_CLASS_COLORS = "Bitte benützt dafür das |cff71D5FFClass Colors|r AddOn",
 		BROKER_CLICK = "|cffFFFFFFKlickt|r, um das Optionsmenü zu öffnen",
 		BROKER_SHIFT_CLICK = "|cffFFFFFFShift-klickt|r, um dieses AddOn ein-/auszuschalten",
