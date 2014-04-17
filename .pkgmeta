@@ -28,9 +28,6 @@ externals:
   Libs/AceGUI-3.0:
     url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceGUI-3.0
     tag: latest
-  Libs/AceTimer-3.0:
-    url: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceTimer-3.0
-    tag: latest
   Libs/LibSink-2.0:
     url: svn://svn.wowace.com/wow/libsink-2-0/mainline/trunk/LibSink-2.0
     tag: latest

@@ -2,20 +2,18 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.16 [2014.04.10]			---
+--- Version: 1.17 [2014.04.17]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
 
---- Notes:
 -- This is my first addon, and was my introduction to programming/scripting
--- If you notice variables defined which are only just used once, then it's for readability ..
 
 local NAME, S = ...
 S.VERSION = GetAddOnMetadata(NAME, "Version")
 S.BUILD = "Release"
 
-KethoCombatLog = LibStub("AceAddon-3.0"):NewAddon("KethoCombatLog", "AceEvent-3.0", "AceTimer-3.0", "AceConsole-3.0", "LibSink-2.0")
+KethoCombatLog = LibStub("AceAddon-3.0"):NewAddon("KethoCombatLog", "AceEvent-3.0", "AceConsole-3.0", "LibSink-2.0")
 local KCL = KethoCombatLog
 KethoCombatLog.S = S -- debug purpose
 
@@ -27,155 +25,13 @@ function KCL:RefreshDB1()
 	profile = self.db.profile
 end
 
+local time = time
+local rawset = rawset
+local sort = sort
+
 	------------
 	--- Data ---
 	------------
-
-S.Taunt = {
-	[355] = true, -- Warrior: [Taunt]
-	[6795] = true, -- Druid: [Growl]
-	[20736] = true, -- Hunter: [Distracting Shot]
-	[116189] = true, -- Monk: [Provoke]; 115546
--- Death Knight
-	[49560] = true, -- [Death Grip]
-	[51399] = true, -- [Death Grip] (melee range)
-	[56222] = true, -- [Dark Command]
--- Paladin
-	[31790] = true, -- [Righteous Defense]
-	[62124] = true, -- [Hand of Reckoning]
-}
-
-S.PetTaunt = {
-	[2649] = true, -- Pet: [Growl]
-	[17735] = true, -- Warlock: [Suffering] (Voidwalker)
-	[36213] = true, -- Greater Earth Elemental: [Angered Earth]
-}
-
-S.Interrupt = {
-	[1766] = true, -- Rogue: [Kick]
-	[2139] = true, -- Mage: [Counterspell]
-	[6552] = true, -- Warrior: [Pummel]
-	[47528] = true, -- Death Knight: [Mind Freeze]
-	[57994] = true, -- Shaman: [Wind Shear]
-	[96231] = true, -- Paladin: [Rebuke]
-	[116705] = true, -- Monk: [Spear Hand Strike] (silence)
--- Druid
-	[80964] = true, -- [Skull Bash] (Bear); pre-interrupt
-	[80965] = true, -- [Skull Bash] (Cat); pre-interrupt
-	[93985] = true, -- [Skull Bash; Interrupt
-}
-
-S.CrowdControl = {
--- Druid
-	[339] = true, -- [Entangling Roots]
-	[2637] = true, -- [Hibernate]
-	[33786] = true, -- [Cyclone]
--- Hunter
-	[1513] = true, -- [Scare Beast]
-	[3355] = true, -- [Freezing Trap]
-	[19386] = true, -- [Wyvern Sting]
--- Mage
-	[118] = true, -- [Polymorph]
--- Monk
-	[115078] = true, -- [Paralysis]
--- Paladin
-	[10326] = true, -- [Turn Evil]
-	[20066] = true, -- [Repentance]
--- Priest
-	[605] = true, -- [Dominate Mind]
-	[5782] = true, -- [Fear]
-	[9484] = true, -- [Shackle Undead]
--- Rogue
-	[2094] = true, -- [Blind]
-	[6770] = true, -- [Sap]
--- Warlock
-	[710] = true, -- [Banish]
-	[6358] = true, -- [Seduction] (Succubus)
-	[51514] = true, -- [Hex]
-}
-
--- dest buff applied to both the target unit and source unit
-S.CrowdControlDouble = {
-	[605] = true, -- [Dominate Mind]
-}
-
-S.Save = {
-	[48153] = true, -- Priest: [Guardian Spirit]
-	[66235] = true, -- Paladin: [Ardent Defender]
-}
-
-S.Blacklist = {
-	[48743] = true, -- SPELL_INSTAKILL, Death Knight: [Death Pact] 
-	[49560] = true, -- SPELL_MISSED, Death Knight: [Death Grip] 
-	[81280] = true, -- SPELL_INSTAKILL, Death Knight: Bloodworm: [Blood Burst]
-	[108503] = true, -- SPELL_INSTAKILL, Warlock: [Grimoire of Sacrifice]
-}
-
-S.Feast = {
-	[56245] = true, -- [Chocolate Celebration Cake]
-	[56255] = true, -- [Lovely Cake]
-	[57301] = true, -- [Great Feast]
-	[57426] = true, -- [Fish Feast]
-	[58465] = true, -- [Gigantic Feast]
-	[58474] = true, -- [Small Feast]
-	[66476] = true, -- [Bountiful Feast]
-	[87644] = true, -- [Seafood Magnifique Feast]
-	[87643] = true, -- [Broiled Dragon Feast]
-	[87915] = true, -- [Goblin Barbecue Feast]
-	[92649] = true, -- [Cauldron of Battle]
-	[92712] = true, -- [Big Cauldron of Battle]
-	
-    [104958] = true, -- Pandaren Banquet, 275 primary stat or 375 stamina
-    [126503] = true, -- Banquet of the Brew, 250 primary stat or 375 stamina
-    [126501] = true, -- Banquet of the Oven, 250 primary stat or 415 stamina
-    [126492] = true, -- Banquet of the Grill, 250 primary stat or 275 strength or 375 stamina
-    [126497] = true, -- Banquet of the Pot, 250 primary stat or 275 intellect or 375 stamina
-    [126499] = true, -- Banquet of the Steamer, 250 primary stat or 275 spirit or 375 stamina
-    [126495] = true, -- Banquet of the Wok, 250 primary stat or 275 agility or 375 stamina
-    -- "Great" Banquets have 25 charges, otherwise identical
-    [105193] = true, -- Great Pandaren Banquet, 275 primary stat or 375 stamina
-    [126504] = true, -- Great Banquet of the Brew, 250 primary stat or 375 stamina
-    [126494] = true, -- Great Banquet of the Oven, 250 primary stat or 415 stamina
-    [126502] = true, -- Great Banquet of the Grill, 250 primary stat or 275 strength or 375 stamina
-    [126498] = true, -- Great Banquet of the Pot, 250 primary stat or 275 intellect or 375 stamina
-    [126498] = true, -- Great Banquet of the Steamer, 250 primary stat or 275 spirit or 375 stamina
-    [126496] = true, -- Great Banquet of the Wok, 250 primary stat or 275 agility or 375 stamina
-}
-
-S.RepairBot = {
-	[22700] = true, -- [Field Repair Bot 74A]
-	[44389] = true, -- [Field Repair Bot 110G]
-	[54710] = true, -- [MOLL-E]
-	[54711] = true, -- [Scrapbot]
-	[67826] = true, -- [Jeeves]
-	[126459] = true, -- [Blingtron 4000]
-}
-
-S.Seasonal = {
--- Hallow's End
-	[24717] = true, -- [Pirate Costume]
-	[24718] = true, -- [Ninja Costume]
-	[24719] = true, -- [Leper Gnome Costume]
-	[24720] = true, -- [Random Costume]
-	[24724] = true, -- [Skeleton Costume]
-	[24733] = true, -- [Bat Costume]
-	[24737] = true, -- [Ghost Costume]
-	[24741] = true, -- [Wisp Costume]
-	[44212] = true, -- [Jack-o'-Lanterned!]
--- Feast of Winter Veil
-	[25677] = true, -- [Hardpacked Snowball] 
-	[26004] = true, -- [Mistletoe]
-	[44755] = true, -- [Snowflakes]
--- Midsummer Fire Festival
-	[45417] = true, -- [Handful of Summer Petals]
-	[46661] = true, -- [Huge Snowball]
--- Love is in the Air
-	[61415] = true, -- [Bouquet of Ebon Roses] [Cascade of Ebon Petals]
-	[27571] = true, -- [Bouquet of Red Roses] [Cascade of Roses]
--- Rest
-	[61781] = true, -- [Turkey Feathers] Pilgrim's Bounty
-	[61815] = true, -- [Sprung!] Noblegarden
-}
 
 S.SpellSchoolString = {
 	[0x1] = STRING_SCHOOL_PHYSICAL,
@@ -215,8 +71,7 @@ S.SpellSchoolString = {
 }
 
 S.NPCID = {
-	[3] = true, -- NPC
-	[4] = true, -- pet
+	[3] = true, -- npc
 	[5] = true, -- vehicle
 }
 
@@ -231,19 +86,28 @@ S.PvP = {
 	arena = true,
 }
 
+S.SpellPrefix = {
+	SPELL = true,
+	RANGE = true,
+	DAMAG = true, -- DAMAGE_SHIELD; DAMAGE_SPLIT; havent seen these in a while
+}
+
 S.DamageEvent = {
 	SWING_DAMAGE = true,
-	--SWING_MISSED = true,
 	RANGE_DAMAGE = true,
-	--RANGE_MISSED = true,
 	SPELL_DAMAGE = true,
-	--SPELL_MISSED = true, -- sometimes a spell is absorbed but still fatal
 	SPELL_PERIODIC_DAMAGE = true,
-	--SPELL_PERIODIC_MISSED = true,
 	ENVIRONMENTAL_DAMAGE = true,
 }
 
 S.MissEvent = {
+	SWING_MISSED = true,
+	RANGE_MISSED = true,
+	SPELL_MISSED = true,
+	SPELL_PERIODIC_MISSED = true,
+}
+
+S.MissType = {
 	REFLECT = true,
 	ABSORB = true,
 }
@@ -276,12 +140,12 @@ S.MissType = {
 }
 
 S.EnvironmentalDamageType = {
-	DROWNING = ACTION_ENVIRONMENTAL_DAMAGE_DROWNING,
-	FALLING = ACTION_ENVIRONMENTAL_DAMAGE_FALLING,
-	FATIGUE = ACTION_ENVIRONMENTAL_DAMAGE_FATIGUE,
-	FIRE = ACTION_ENVIRONMENTAL_DAMAGE_FIRE,
-	LAVA = ACTION_ENVIRONMENTAL_DAMAGE_LAVA,
-	SLIME = ACTION_ENVIRONMENTAL_DAMAGE_SLIME,
+	Drowning = ACTION_ENVIRONMENTAL_DAMAGE_DROWNING,
+	Falling = ACTION_ENVIRONMENTAL_DAMAGE_FALLING,
+	Fatigue = ACTION_ENVIRONMENTAL_DAMAGE_FATIGUE,
+	Fire = ACTION_ENVIRONMENTAL_DAMAGE_FIRE,
+	Lava = ACTION_ENVIRONMENTAL_DAMAGE_LAVA,
+	Slime = ACTION_ENVIRONMENTAL_DAMAGE_SLIME,
 }
 
 S.Talk = {
@@ -333,6 +197,8 @@ S.EventMsg = { -- options order
 	"Death_Instakill",
 	"Save",
 	"Resurrect",
+	"Soulstone",
+	"Reincarnation",
 }
 
 S.EventString = {
@@ -345,15 +211,17 @@ S.EventString = {
 	Reflect = {REFLECT, "Ability_Warrior_ShieldReflection"},
 	Miss = {MISS, "Ability_Hunter_MasterMarksman"},
 	CrowdControl = {L.EVENT_CROWDCONTROL, "Spell_Nature_Polymorph"},
-	Break_Spell = {L.EVENT_BREAK.." (Spell)", "Spell_Shadow_ShadowWordPain"},
-	Break = {L.EVENT_BREAK, "Ability_Seal"},
-	Break_NoSource = {L.EVENT_BREAK.." (No "..SOURCE:gsub(":","")..")", "INV_Misc_QuestionMark"},
+	Break_Spell = {GetSpellInfo(82881).." ("..STAT_CATEGORY_SPELL..")", "Spell_Shadow_ShadowWordPain"},
+	Break = {GetSpellInfo(82881), "Ability_Seal"},
+	Break_NoSource = {GetSpellInfo(82881).." (No "..SOURCE:gsub(":","")..")", "INV_Misc_QuestionMark"},
 	Death = {TUTORIAL_TITLE25, "Ability_Rogue_FeignDeath"},
 	Death_Melee = {TUTORIAL_TITLE25.." ("..ACTION_SWING..")", "Spell_Holy_FistOfJustice"},
 	Death_Environmental = {TUTORIAL_TITLE25.." ("..ENVIRONMENTAL_DAMAGE..")", "Spell_Shaman_LavaFlow"},
 	Death_Instakill = {TUTORIAL_TITLE25.." (Instakill)", "INV_Misc_Bone_HumanSkull_01"},
 	Save = {L.EVENT_SAVE, "Spell_Holy_GuardianSpirit"},
 	Resurrect = {GetSpellInfo(2006), "Spell_Holy_Resurrection"},
+	Soulstone = {GetSpellInfo(20707), "Spell_Shadow_SoulGem"},
+	Reincarnation = {GetSpellInfo(20608), "spell_shaman_improvedreincarnation"},
 }
 
 S.EventGroup = {
@@ -365,7 +233,54 @@ S.EventGroup = {
 	Death_Instakill = "Death",
 	Break_Spell = "Break",
 	Break_NoSource = "Break",
+	Soulstone = "Resurrect",
+	Reincarnation = "Resurrect",
 }
+
+S.SelfResRemap = {
+	[20707] = "Soulstone",
+	[20608] = "Reincarnation",
+}
+
+	--------------------
+	--- Custom Spell ---
+	--------------------
+
+S.SpellMsg = {
+	"CAST_START",
+	"CAST_SUCCESS_NO_DEST",
+	"CAST_SUCCESS",
+}
+
+S.SpellString = {
+	CAST_START = SPELL_CAST_START_COMBATLOG_TOOLTIP,
+	CAST_SUCCESS_NO_DEST = SPELL_CAST_SUCCESS_COMBATLOG_TOOLTIP.." ("..SPELL_FAILED_BAD_IMPLICIT_TARGETS..")",
+	CAST_SUCCESS = SPELL_CAST_SUCCESS_COMBATLOG_TOOLTIP,
+}
+
+-- the Blizzard_CombatLog kinda does this the same way, for casts done by yourself
+-- not sure about making this message customizable, I think it would clutter up the spell messages
+S.SpellPlayer = {
+	CAST_START = "<SRC> "..ACTION_SPELL_CAST_START.." <SPELL>",
+	CAST_SUCCESS_NO_DEST = "<SRC> "..ACTION_SPELL_CAST_SUCCESS.." <SPELL>",
+	CAST_SUCCESS = "<SRC> "..ACTION_SPELL_CAST_SUCCESS.." <SPELL><DEST>",
+}
+
+S.SpellRemap = {
+	CAST_START = "CAST_START",
+	CAST_SUCCESS = "CAST_SUCCESS",
+	AURA_APPLIED = "CAST_SUCCESS",
+	SUMMON = "CAST_SUCCESS",
+	CREATE = "CAST_SUCCESS",
+}
+
+S.SpellSummon = {
+	SUMMON = true,
+	CREATE = true,
+}
+
+-- for spell data frame order
+S.SpellGroupOrder = {"Feast", "RepairBot", "Bloodlust", "Portal", "Holiday", "Fun"}
 
 	-------------
 	--- Class ---
@@ -454,7 +369,7 @@ end
 
 -- only for class colors
 S.ClassColor = setmetatable({}, {__index = function(t, k)
-	local color = (CUSTOM_CLASS_COLORS or profile.color)[k]
+	local color = (CUSTOM_CLASS_COLORS or profile.color)[k or "PRIEST"] -- fallback
 	local v = format("%02X%02X%02X", color.r*255, color.g*255, color.b*255)
 	rawset(t, k, v)
 	return v
@@ -513,7 +428,7 @@ local timestamp = {
 }
 
 for i, v in ipairs(timestamp) do
-	timestamp[i] = v:trim() -- remove trailing space
+	timestamp[i] = v:trim() -- remove trailing whitespace
 end
 
 function S.GetTimestamp()
@@ -525,7 +440,7 @@ function S.GetTimestamp()
 	return timestampLocal, timestampChat
 end
 
-local exampleTime = time({ -- FrameXML\InterfaceOptionsPanels.lua L1203 (4.3.4.15595)
+local exampleTime = time({ -- FrameXML\InterfaceOptionsPanels.lua
 	year = 2010,
 	month = 12,
 	day = 15,
@@ -534,15 +449,65 @@ local exampleTime = time({ -- FrameXML\InterfaceOptionsPanels.lua L1203 (4.3.4.1
 	sec = 32,
 })
 
-S.xmpl_timestamps = {}
+S.xmpl_timestamps = {} 
 
 for i, v in ipairs(timestamp) do
 	S.xmpl_timestamps[i] = BetterDate(v, exampleTime)
 end
 
 	-------------
+	--- Timer ---
+	-------------
+
+-- behold KethoTimer, its not fueled on animations but it works x)
+-- I think vs AceTimer this is better in the case of single OnUpdates
+local timers = {}
+S.timers = timers
+
+local function GetTimer() -- allocate timers
+	local i = 1
+	while timers[i] and timers[i].running do
+		i = i + 1
+	end
+	-- if a timer isnt running return that, otherwise return a new one
+	if not timers[i] then
+		timers[i] = CreateFrame("Frame")
+	end
+	return timers[i]
+end
+
+function S.Timer(func, delay)
+	local t = GetTimer()
+	t.running = true
+	local sum = 0
+	t:SetScript("OnUpdate", function(self, e)
+		sum = sum + e
+		if sum > delay then
+			self:SetScript("OnUpdate", nil)
+			self.running = false
+			func()
+		end
+	end)
+end
+
+	-------------
 	--- Stuff ---
 	-------------
+
+-- from lookup table to sequential table
+function S.SortTable(t)
+	local i, o = 1, {}
+	for k, v in pairs(t) do
+		o[i] = k
+		i = i + 1
+	end
+	sort(o)
+	return o
+end
+
+function S.Approx(v, ap, err)
+	return v > ap-err and v < ap+err
+end
 
 S.crop = ":64:64:4:60:4:60"
 
@@ -552,15 +517,16 @@ for i = 12, 32, 2 do
 end
 S.IconValues[16] = " 16  |cffFBDB00("..DEFAULT..")|r"
 
-function S.GetClassColor(class)
+S.player = {
+	name = UnitName("player"),
+	class = select(2, UnitClass("player")),
+}
+
+local function GetClassColor(class)
 	local color = (CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS)[class]
 	return format("%02X%02X%02X",color.r*255, color.g*255, color.b*255)
 end
 
-S.Player = {
-	name = UnitName("player"),
-	class = select(2, UnitClass("player")),
-}
-local player = S.Player
-
-player.color = S.GetClassColor(player.class)
+S.player.color = GetClassColor(S.player.class)
+-- guid not readily available at first startup
+S.Timer(function() S.player.guid = UnitGUID("player") end, 0)

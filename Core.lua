@@ -5,23 +5,32 @@ local ACR = LibStub("AceConfigRegistry-3.0")
 local ACD = LibStub("AceConfigDialog-3.0")
 
 local L = S.L
+local player = S.player
 local options = S.options
 
 local profile, char
-local color, spell
+local color
 
-local player = S.Player
-
+-- stuff gets called a lot in CLEU addons
 local _G = _G
 local tonumber = tonumber
-local unpack = unpack
+local select, unpack = select, unpack
 local time = time
-local strsub, strmatch, format = strsub, strmatch, format
-local wipe = wipe
+local strsub, strmatch = strsub, strmatch
+local format, gsub, gmatch = format, gsub, gmatch
+local wipe, table_maxn = wipe, table.maxn
 local bit_band = bit.band
 
-local GetPlayerInfoByGUID = GetPlayerInfoByGUID
+local UnitGUID = UnitGUID
 local GetSpellInfo, GetSpellLink = GetSpellInfo, GetSpellLink
+local GetPlayerInfoByGUID = GetPlayerInfoByGUID
+
+local UnitAffectingCombat = UnitAffectingCombat
+local UnitHealth = UnitHealth
+local UnitIsVisible = UnitIsVisible
+local UnitIsDead, UnitIsDeadOrGhost = UnitIsDead, UnitIsDeadOrGhost
+
+local AbbreviateLargeNumbers = AbbreviateLargeNumbers
 
 local COMBATLOG_OBJECT_RAIDTARGET_MASK = COMBATLOG_OBJECT_RAIDTARGET_MASK
 local COMBATLOG_OBJECT_REACTION_FRIENDLY = COMBATLOG_OBJECT_REACTION_FRIENDLY
@@ -31,28 +40,55 @@ local TEXT_MODE_A_TIMESTAMP = TEXT_MODE_A_TIMESTAMP
 local TEXT_MODE_A_STRING_SOURCE_UNIT = TEXT_MODE_A_STRING_SOURCE_UNIT
 local TEXT_MODE_A_STRING_DEST_UNIT = TEXT_MODE_A_STRING_DEST_UNIT
 local TEXT_MODE_A_STRING_SPELL = TEXT_MODE_A_STRING_SPELL
-local TEXT_MODE_A_STRING_RESULT_OVERKILLING = TEXT_MODE_A_STRING_RESULT_OVERKILLING
+local TEXT_MODE_A_STRING_RESULT_OVERKILLING = gsub(TEXT_MODE_A_STRING_RESULT_OVERKILLING, "%%d", "%%s")
 local TEXT_MODE_A_STRING_RESULT_CRITICAL = TEXT_MODE_A_STRING_RESULT_CRITICAL
 local TEXT_MODE_A_STRING_RESULT_GLANCING = TEXT_MODE_A_STRING_RESULT_GLANCING
 local TEXT_MODE_A_STRING_RESULT_CRUSHING = TEXT_MODE_A_STRING_RESULT_CRUSHING
 
 local args = {}
 local braces = "[%[%]]"
+local white = {1, 1, 1}
 local chatType
 
--- bit flaky naming
+-- users are free to change this
+local latencyThreshold = 1 -- only accept damage that occured within a x seconds time frame before death
+local deviation = .02 -- approximation precision for selfres health delta
+
 local death = {
-	unit = {}, -- unit guids from the UNIT_DIED event; timestamp
-	overkill = {}, -- unit guids that supposedly died from overkill; saved cleu event
-	damage = {}, -- unit guids with their last known dmg event; saved cleu event
+	time = {}, -- unit guids from the UNIT_DIED event; number: timestamp
+	overkill = {}, -- unit guids that supposedly died from overkill; table: cleu event
+	damage = {}, -- unit guids with their last known dmg event; table: cleu event
+	deleted = {}, -- unit guids that got cleaved by High Overlord Saurfang; boolean
+	
+	cheater = {}, -- unit guids that are cheating death; cleu event
+	whosyourdaddy = {}, -- cheaters get to skip the delta check; boolean
 }
 
-local overkillcd = {} -- separate cooldown between every overkill event; time of last overkill event
-local ttl = 2 -- time to live/die -- required time for last known dmg event to be counted as death
+-- reincarnation never actually shows up in CLEU
+local spell_reincarnation = {20608, GetSpellInfo(20608), 8}
 
-	------------
-	--- Ace3 ---
-	------------
+local selfres = {
+	soulstone = {}, -- Warlock Soulstone
+	source_soulstone = {}, -- merge source args for the original Soulstone caster
+	reincarnation = {}, -- Shaman Reincarnation
+	
+	prevHealth = {}, -- compare to current health for delta
+	wasDead = {}, -- double confirm unit was actually dead before selfres
+}
+
+local interrupt = {} -- track if interrupts were successful or wasted/juked
+
+local spell = { -- lookup table for currently enabled custom spells
+	CAST_START = {},
+	CAST_SUCCESS = {},
+	AURA_APPLIED = {},
+	CREATE = {},
+	SUMMON = {},
+}
+
+	--------------
+	--- # Ace3 ---
+	--------------
 
 local appKey = {
 	"KethoCombatLog_Main",
@@ -99,11 +135,6 @@ function KCL:OnInitialize()
 	for _, v in ipairs({"kcl", "ket", "ketho", "kethocombat", "kethocombatlog"}) do
 		self:RegisterChatCommand(v, "SlashCommand")
 	end
-	
-	-- v1.11: changed toggle widget to select widget without renaming ..
-	if profile.Timestamp == true then
-		profile.Timestamp = 1
-	end
 end
 
 function KCL:OnEnable()
@@ -149,11 +180,35 @@ function KCL:RefreshDB()
 	end
 	self:WipeCache() -- wipe metatables
 	self:SetSinkStorage(profile) -- LibSink
+	self:RefreshEvent() -- options dependent event
+	self:RefreshSpell() -- options dependent spells lookup
 	
 	-- other
 	S.crop = profile.IconCropped and ":64:64:4:60:4:60" or ""
 	if profile.ChatWindow > 1 then
 		S.ChatFrame = _G["ChatFrame"..profile.ChatWindow-1]
+	end
+end
+
+-- (un)register according to options
+function KCL:RefreshEvent()
+	-- for efficiency, RegisterUnitEvent came to mind, but it doesnt fit in with Ace3
+	-- it would also only take unit ids, and for some reason, not names
+	-- unit ids are kinda hard to get from CLEU and they can change
+	self[(profile.Soulstone or profile.Reincarnation) and "RegisterEvent" or "UnregisterEvent"](self, "UNIT_HEALTH")
+end
+
+function KCL:RefreshSpell(option)
+	if option then
+		for k, v in pairs(S.Spell[option]) do
+			spell[v][k] = profile[option] and true
+		end
+	else
+		for k1, v1 in pairs(S.Spell) do
+			for k2, v2 in pairs(v1) do
+				spell[v2][k2] = profile[k1] and true
+			end
+		end
 	end
 end
 
@@ -189,6 +244,10 @@ function KCL:SlashCommand(input)
 	end
 end
 
+	--------------
+	--- Events ---
+	--------------
+
 -- Blizzard CombatLog is Load-on-Demand
 function KCL:ADDON_LOADED(event, addon)
 	if addon == "Blizzard_CombatLog" and not profile.BlizzardCombatLog then
@@ -198,12 +257,12 @@ function KCL:ADDON_LOADED(event, addon)
 end
 
 function KCL:ZONE_CHANGED_NEW_AREA(event)
-	local instanceType = select(2, IsInInstance())
+	local _, instanceType = IsInInstance()
 	
 	local pve = profile.PvE and S.PvE[instanceType]
 	local pvp = profile.PvP and S.PvP[instanceType]
 	local world = profile.World and instanceType == "none"
-	S.isBattleground = instanceType == "pvp"
+	S.isBattleground = (instanceType == "pvp")
 	
 	self[(pve or pvp or world) and "RegisterEvent" or "UnregisterEvent"](self, "COMBAT_LOG_EVENT_UNFILTERED")
 end
@@ -216,6 +275,7 @@ function KCL:GROUP_ROSTER_UPDATE(event)
 	elseif p == 3 then
 		chatType = "YELL"
 	elseif p == 4 then
+		-- battleground chat is filtered during the output
 		local isInstance = IsInRaid(LE_PARTY_CATEGORY_INSTANCE) or IsInGroup(LE_PARTY_CATEGORY_INSTANCE)
 		chatType = isInstance and "INSTANCE_CHAT" or IsInRaid() and "RAID" or IsInGroup() and "PARTY"
 	elseif p >= 5 then
@@ -227,10 +287,10 @@ end
 	--- Reaction ---
 	----------------
 
-local function UnitReaction(unitflags)
-	if bit_band(unitflags, COMBATLOG_OBJECT_REACTION_FRIENDLY) > 0 then
+local function UnitReaction(flags)
+	if bit_band(flags, COMBATLOG_OBJECT_REACTION_FRIENDLY) > 0 then
 		return "Friendly"
-	elseif bit_band(unitflags, COMBATLOG_OBJECT_REACTION_HOSTILE) > 0 then
+	elseif bit_band(flags, COMBATLOG_OBJECT_REACTION_HOSTILE) > 0 then
 		return "Hostile"
 	else
 		return "Unknown"
@@ -251,6 +311,17 @@ local function UnitIcon(unitFlags, reaction)
 	local chat = "{"..strlower(_G["RAID_TARGET_"..i]).."}"
 	return iconString, chat
 end
+
+	-------------
+	--- Class ---
+	-------------
+
+-- only need to look up an units class once
+local GetPlayerClass = setmetatable({}, {__index = function(t, k)
+	local _, v = GetPlayerInfoByGUID(k)
+	rawset(t, k, v)
+	return v
+end})
 
 	-------------
 	--- Spell ---
@@ -291,7 +362,9 @@ end
 local function GetResultString(overkill, critical, glancing, crushing)
 	local str = ""
 
-	if overkill and profile.OverkillFormat then
+	-- overkill can be -1 instead of nil
+	if overkill and overkill > 0 and profile.OverkillFormat then
+		overkill = profile.AbbreviateNumbers and AbbreviateLargeNumbers(overkill) or overkill
 		str = str.." "..format(TEXT_MODE_A_STRING_RESULT_OVERKILLING, overkill)
 	end
 	if critical and profile.CriticalFormat then
@@ -315,17 +388,14 @@ local function IsOption(event)
 	return profile["Local"..event] or profile["Chat"..event]
 end
 
-local function IsLocalEvent(event)
-	return profile["Local"..event]
-end
-
-local function IsChatEvent(event)
-	return profile[(profile.ChatFilter and "Chat" or "Local")..event]
-end
-
 local function TankFilter(event, unit)
-	local isTank = (UnitGroupRolesAssigned(unit) == "TANK")
-	return not isTank or profile["Tank"..event]
+	return profile["Tank"..event] or not (UnitGroupRolesAssigned(unit) == "TANK")
+end
+
+-- it might be the player is in a bg/arena vs the enemy faction
+-- then check if the player is in combat instead; its really not foolproof though
+local function UnitInCombat(name)
+	return UnitAffectingCombat(name) or UnitAffectingCombat("player")
 end
 
 	------------
@@ -336,8 +406,8 @@ local function SetMessage(msgtype)
 	args.msg = profile.message[msgtype]
 	local group = S.EventGroup[msgtype] or msgtype -- fallback
 	args.color = color[group]
-	args.loc = IsLocalEvent(group)
-	args.chat = IsChatEvent(group) -- whether to output to chat
+	args["local"] = profile["Local"..group]
+	args.chat = profile[(profile.ChatFilter and "Chat" or "Local")..group]
 end
 
 -- only append x for these chatargs
@@ -363,9 +433,33 @@ local function ReplaceArgs(args, isChat)
 	return msg
 end
 
-	------------
-	--- CLEU ---
-	------------
+-- its either higher cpu load, or flipping tables all over the place :x
+local function RecycleTable(t, ...)
+	t = t or {}
+	wipe(t) -- purge old values
+	for i = 1, select("#", ...) do
+		t[i] = select(i, ...)
+	end
+	return t
+end
+
+-- for gettings selfres args in a more useful order
+local function SwitchSourceDest(cleu)
+	local t = {}
+	for i = 1, 4 do
+		t[i] = cleu[i+4]
+	end
+	for i = 1, 4 do
+		cleu[i+4] = cleu[i+8]
+	end
+	for i = 1, 4 do
+		cleu[i+8] = t[i]
+	end
+end
+
+	--------------
+	--- # CLEU ---
+	--------------
 
 function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	
@@ -381,22 +475,24 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local destNPC = destType and S.NPCID[bit_band(destType, 0x7)]
 	
 	-- exceptions to the filter
-	local isMissEvent = (subevent == "SPELL_MISSED" and S.MissEvent[select(15, ...)])
+	local petspell, _, _, miss = select(12, ...)
+	local isMissEvent = (S.MissEvent[subevent] and S.MissType[miss])
 	local isReverseEvent = S.DamageEvent[subevent] or isMissEvent or subevent == "UNIT_DIED"
-	local isPetTaunt = S.PetTaunt[select(12, ...)]
+	-- petz are not a players but we still want to see when they do anything important
+	local isPet = S.PetTaunt[petspell] or S.PetInterrupt[petspell]
 	
 	--------------
 	--- Filter ---
 	--------------
 	
-	if sourceName == player.name or destName == player.name then
+	if sourceGUID == player.guid or destGUID == player.guid then
 		if not profile.FilterSelf then return end
 	else
 		if not profile.FilterOther then return end
 	end
 	
-	-- the other way round for for death/reflect events
-	if (isReverseEvent and destPlayer) or (not isReverseEvent and sourcePlayer) or isPetTaunt then
+	-- the other way round for death/reflect events
+	if (not isReverseEvent and (sourcePlayer or isPet)) or (isReverseEvent and destPlayer) then
 		if not profile.FilterPlayers then return end
 	else
 		if not profile.FilterMonsters then return end
@@ -406,20 +502,18 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	--- Unit ---
 	------------
 	
-	-- reaction also used in SPELL_DISPEL
+	-- reaction variable also used for in SPELL_DISPEL
 	local sourceReaction = UnitReaction(sourceFlags)
 	local destReaction = UnitReaction(destFlags)
 	
-	if sourceName then
-		-- trim out (CRZ) realm name; only do this for players, to avoid false positives for certain npcs
-		local name = (profile.TrimRealm and sourcePlayer) and strmatch(sourceName, "([^%-]+)%-?.*") or sourceName
-		local fname = (sourceName == player.name) and UNIT_YOU_SOURCE or name
+	if sourceName then -- if no unit, then guid is an empty string and name is nil
+		-- trim out (CRZ) realm name; only do this for players
+		local name = (sourcePlayer and profile.TrimRealm) and strmatch(sourceName, "([^%-]+)%-?.*") or sourceName
+		local fname = (sourceGUID == player.guid) and UNIT_YOU_SOURCE or name
 		local sourceIconLocal, sourceIconChat = UnitIcon(sourceRaidFlags, 1)
-		local color = S.GeneralColor[sourceReaction]
-		
-		if sourcePlayer and (profile.ColorEnemy or not profile.ColorEnemy and sourceReaction == "Friendly") then
-			local class = select(2,GetPlayerInfoByGUID(sourceGUID))
-			color = class and S.ClassColor[class] or color
+		local color = S.GeneralColor[sourceReaction] -- sometimes early on GetPlayerClass returns nil so we do this first
+		if sourcePlayer and (profile.ColorEnemyPlayers or sourceReaction == "Friendly") then
+			color = S.ClassColor[GetPlayerClass[sourceGUID]]
 		end
 		
 		args.src = format("|cff%s"..TEXT_MODE_A_STRING_SOURCE_UNIT.."|r", color, sourceIconLocal, sourceGUID, sourceName, "["..fname.."]")
@@ -427,14 +521,13 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	end
 	
 	if destName then
-		local name = (profile.TrimRealm and destPlayer) and strmatch(destName, "([^%-]+)%-?.*") or destName
-		local fname = (destName == player.name) and UNIT_YOU_DEST or (destName == sourceName) and L.SELF or name
+		local isSelf = (destGUID == sourceGUID) and not isReverseEvent -- avoid "[Self] died from [Player][Spell]" if a unit died by its own damage
+		local name = isSelf and L.SELF or (destPlayer and profile.TrimRealm) and strmatch(destName, "([^%-]+)%-?.*") or destName
+		local fname = (destGUID == player.guid) and UNIT_YOU_DEST or name
 		local destIconLocal, destIconChat = UnitIcon(destRaidFlags, 2)
-		local color = S.GeneralColor[destReaction]
-		
-		if destPlayer and (profile.ColorEnemy or not profile.ColorEnemy and destReaction == "Friendly") then
-			local class = select(2,GetPlayerInfoByGUID(destGUID))
-			color = class and S.ClassColor[class] or color
+		local color = S.GeneralColor[destReaction] 
+		if destPlayer and (profile.ColorEnemyPlayers or destReaction == "Friendly") then
+			color = S.ClassColor[GetPlayerClass[destGUID]]
 		end
 		
 		args.dest = format("|cff%s"..TEXT_MODE_A_STRING_DEST_UNIT.."|r", color, destIconLocal, destGUID, destName, "["..fname.."]")
@@ -452,7 +545,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	if prefix == "SWING" then
 		SuffixParam1, SuffixParam2, SuffixParam3, SuffixParam4, SuffixParam5, SuffixParam6, SuffixParam7, SuffixParam8, SuffixParam9 = select(12, ...)
 		args.amount = SuffixParam1
-	elseif prefix == "SPELL" or prefix == "RANGE" or prefix == "DAMAG" then
+	elseif S.SpellPrefix[prefix] then
 		spellID, spellName, spellSchool, SuffixParam1, SuffixParam2, SuffixParam3, SuffixParam4, SuffixParam5, SuffixParam6, SuffixParam7, SuffixParam8, SuffixParam9 = select(12, ...)
 		args.amount = SuffixParam1
 		
@@ -468,152 +561,250 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	end
 	
 	-------------
-	--- Event ---
+	--- Death ---
 	-------------
 	
-	-- only announce death after UNIT_DIED fired, since the overkill parameter isn't always accurate
-	-- prioritize any overkill events over the last non overkill event stored, all within a 2 seconds time frame
+	local delta = (death.time[destGUID] or 0) - timestamp
+	local isDeath = (delta>=0 and delta<latencyThreshold) or death.whosyourdaddy[destGUID]
+	
 	if S.DamageEvent[subevent] then
 		if not IsOption("Death") then return end
 		
-		-- check for confirmation of the guid his death, then announce
-		if death.unit[destGUID] and death.unit[destGUID]-timestamp < ttl then
+		if isDeath then
 			if subevent == "ENVIRONMENTAL_DAMAGE" then
-				local environmentalType, amount = select(12, ...)
+				local environmentalType, amount, _, _, _, _, absorb = select(12, ...)
 				if not destName then return end -- sometimes destName is nil
-				args.amount = amount
+				args.amount = (amount == 0) and absorb or amount -- fix holy priest fatal absorb
 				args.type = S.EnvironmentalDamageType[environmentalType] or environmentalType
 				SetMessage("Death_Environmental")
 			else
 				SetMessage(subevent == "SWING_DAMAGE" and "Death_Melee" or "Death")
 			end
+		else
+			-- ignore damage on Death Knight [Purgatory]; Amount is greater than Overkill by exactly 1
+			if SuffixParam1 and SuffixParam2 and SuffixParam1-SuffixParam2 == 1 then return end
+			-- store last overkill/normal damage event
+			death.damage[destGUID] = RecycleTable(death.damage[destGUID], event, ...)
+			if SuffixParam2 and SuffixParam2 > 0 then
+				death.overkill[destGUID] = RecycleTable(death.overkill[destGUID], event, ...)
+			end
+		end
+	
+	-- only announce death after UNIT_DIED fired, since the overkill parameter sometimes gives false positives/negatives
+	elseif subevent == "UNIT_DIED" then
+		if not IsOption("Death") then return end
+		
+		-- death handling
+		self:ShowDeath(destGUID, timestamp)
+		
+		-- store cleu event for if the unit possibly resurrects itself; very hacky
+		-- soulstone has precedence over reincarnation when cast on a shaman
+		if selfres.soulstone[destGUID] == true then -- confirm unit death with soulstone active
+			selfres.soulstone[destGUID] = {event, ...}
+			local ss, source_ss = selfres.soulstone[destGUID], selfres.source_soulstone[destGUID]
+			ss[3] = "SPELL_RESURRECT_SELF"
+			for i = 5, 8 do ss[i] = source_ss[i-4] end -- copy source
+			for i = 13, 15 do ss[i] = source_ss[i-8] end -- copy spell
+			SwitchSourceDest(ss) -- switch source and dest because if used on self it shows "[Self] used [Player][Soulstone]"
+		elseif GetPlayerClass[destGUID] == "SHAMAN" and profile.Reincarnation then -- possible reincarnation active
+			selfres.reincarnation[destGUID] = {event, ...}
+			local re = selfres.reincarnation[destGUID]
+			re[3] = "SPELL_RESURRECT_SELF"
+			for i, v in ipairs(spell_reincarnation) do re[i+12] = v end -- copy spell
+			SwitchSourceDest(re)
 		end
 		
-		-- store last dmg event. generates a crapload of garbage
-		death.damage[destGUID] = {event, ...}
-		-- store last overkill event
-		if SuffixParam2 and SuffixParam2 > 0 and time() > (overkillcd[destGUID] or 0) then
-			overkillcd[destGUID] = time() + ttl -- throttle overkill events
-			death.overkill[destGUID] = {event, ...}
-			self:ScheduleTimer(function()
-				-- discard overkill event, in case it was a false positive, and for future deaths
-				death.overkill[destGUID] = nil
-			end, 2)
+		return -- avoid double messages (the args from re-fired CLEU werent wiped)
+	
+	-- SPELL_INSTAKILL can fire on the same OnUpdate as UNIT_DIED, not sure if it can also fire later
+	elseif subevent == "SPELL_INSTAKILL" then
+		if IsOption("Death") and not S.Blacklist[spellID] then
+			SetMessage("Death_Instakill")
+			death.deleted[destGUID] = true -- dont announce death a second time
 		end
-		death.unit[destGUID] = nil -- reset death flag
-	elseif subevent == "UNIT_DIED" then
-		local events = death.overkill[destGUID] or death.damage[destGUID]
-		if IsOption("Death") and events and not UnitBuff(destName, 5384) then -- Hunter 5384 [Feign Death] fix
-			death.unit[destGUID] = timestamp -- set death flag and also store current timestamp for comparing with the fatal event
-			self:COMBAT_LOG_EVENT_UNFILTERED(unpack(events)) -- fire the fatal event again
-			return -- avoid double messages
-		end
-	elseif subevent == "SPELL_CAST_SUCCESS" then
-		if S.Interrupt[spellID] and IsOption("Juke") then
-			self:Juke(...)
-		end
-	elseif subevent == "SPELL_AURA_APPLIED" then
-		if S.Taunt[spellID] or (S.PetTaunt[spellID] and profile.PetTaunt) and destNPC and IsOption("Taunt") and TankFilter("Taunt", sourceName) then
-			SetMessage("Taunt")
-		elseif S.CrowdControl[spellID] and IsOption("CrowdControl") then
-			if not (destGUID == sourceGUID and S.CrowdControlDouble[spellID]) then
-				SetMessage("CrowdControl")
-			end
-		-- Priest 27827 [Spirit of Redemption] fix
-		-- sometimes applied just before receiving the fatal dmg event
-		elseif spellID == 27827 and IsOption("Death") then
-			self:ScheduleTimer(function()
-				-- prioritize overkill over common dmg events
-				local events = death.overkill[destGUID] or death.damage[destGUID]
-				if events then
-					death.unit[destGUID] = timestamp
-					self:COMBAT_LOG_EVENT_UNFILTERED(unpack(events))
-					return
-				end
-			end, .5)
-		end
-	elseif subevent == "SPELL_INTERRUPT" then
-		if IsOption("Interrupt") then
-			SetMessage("Interrupt")
-		end
-		if IsOption("Juke") then
-			self:Juke(...)
-		end
-	elseif subevent == "SPELL_JUKE" then
-		-- not needed to check event options
-		SetMessage("Juke")
-	elseif subevent == "SPELL_DISPEL" then
-		if IsOption("Dispel") then
-			local friendly = (sourceReaction == "Friendly" and destReaction == sourceReaction)
-			local hostile = (sourceReaction == "Hostile" and destReaction == sourceReaction)
-			-- cleanses between two (friendly/hostile) units
-			-- bug: its not possible to see whether 2 friendly units are hostile to each other, ie dueling
-			if friendly or hostile then
-				if profile.FriendlyDispel then
-					SetMessage("Cleanse")
-				end
-			else
-				if profile.HostileDispel then
-					SetMessage("Dispel")
-				end
-			end
-		end
-	elseif subevent == "SPELL_STOLEN" then
-		if IsOption("Dispel") and profile.Spellsteal then
-			SetMessage("Spellsteal")
-		end
-	elseif subevent == "SPELL_MISSED" then
-		-- holy priest fatal spell absorb bug
+	
+	------------
+	--- Miss ---
+	------------
+	
+	elseif S.MissEvent[subevent] then
+		-- (fatal) absorb event that still counts as damage
 		if SuffixParam1 == "ABSORB" then
 			if not IsOption("Death") then return end
-			if death.unit[destGUID] and death.unit[destGUID]-timestamp < ttl then
+			if isDeath then
 				args.amount = SuffixParam3
 				SetMessage("Death")
+			else
+				death.damage[destGUID] = RecycleTable(death.damage[destGUID], event, ...)
 			end
-			death.damage[destGUID] = {event, ...}
-			death.unit[destGUID] = nil
 		elseif SuffixParam1 == "REFLECT" then
 			if IsOption("Reflect") then
 				SetMessage("Reflect")
 			end
 		else
 			local taunt = S.Taunt[spellID] and IsOption("Taunt")
-			local interrupt = S.Interrupt[spellID] and IsOption("Interrupt")
-			local crowdcontrol = S.CrowdControl[spellID] and IsOption("CrowdControl")
-			if (profile.MissAll or taunt or interrupt or crowdcontrol) and not S.Blacklist[spellID] then
+			local int = S.Interrupt[spellID] and IsOption("Interrupt")
+			local cc = S.CrowdControl[spellID] and IsOption("CrowdControl")
+			if (taunt or int or cc) and not S.Blacklist[spellID] then
 				args.type = S.MissType[SuffixParam1] or SuffixParam1
 				SetMessage("Miss")
 			end
 			-- check if the interrupt failed, instead of being wasted
 			if S.Interrupt[spellID] and IsOption("Juke") then
-				self:Juke(...)
+				interrupt[sourceGUID] = false -- failed interrupt
 			end
 		end
+	
+	-----------------
+	--- Interrupt ---
+	-----------------
+	
+	elseif subevent == "SPELL_CAST_SUCCESS" then
+		if S.Interrupt[spellID] and IsOption("Juke") then
+			interrupt[sourceGUID] = true -- casted interrupt
+			-- trying to save a vararg; am I doing this right? :x
+			local varg, n = {...}, select("#", ...)
+			varg[2] = "SPELL_INTERRUPT_WASTED"
+			S.Timer(function()
+				if interrupt[sourceGUID] then -- wasted interrupt
+					-- need to fire another event since we are now delayed
+					self:COMBAT_LOG_EVENT_UNFILTERED(event, unpack(varg, 1, n))
+				end
+				interrupt[sourceGUID] = false
+			end, .5) -- wait for SPELL_INTERRUPT delay/lag
+		end
+	
+	-- show any and all interrupts
+	elseif subevent == "SPELL_INTERRUPT" then
+		if IsOption("Interrupt") then
+			SetMessage("Interrupt")
+		end
+		if S.Interrupt[spellID] and IsOption("Juke") then
+			interrupt[sourceGUID] = false -- succesful interrupt
+		end
+	
+	elseif subevent == "SPELL_INTERRUPT_WASTED" then
+		SetMessage("Juke")
+	
+	------------
+	--- Aura ---
+	------------
+	
+	elseif subevent == "SPELL_AURA_APPLIED" then
+		local isTaunt = S.Taunt[spellID] or (S.PetTaunt[spellID] and profile.PetTaunt)
+		if isTaunt and IsOption("Taunt") and destNPC and TankFilter("Taunt", sourceName) then
+			-- guardian is also a npc; hunter pets auto casting taunts on dummies when measuring dps
+			local isGuardian = bit_band(destFlags, COMBATLOG_OBJECT_TYPE_GUARDIAN) > 0
+			local isTrainingDummy = S.TrainingDummy[tonumber(strsub(destGUID, 6, 10), 16)]
+			if S.PetTaunt[spellID] and (isGuardian or isTrainingDummy) then return end
+			SetMessage("Taunt")
+		
+		-- fatal events can sometimes also happen right after e.g. the SPELL_AURA_APPLIED event
+		-- a single OnUpdate iteration later is enough to include those events as well		
+		
+		-- Holy Priest 27827 [Spirit of Redemption] fix
+		elseif spellID == 27827 and IsOption("Death") then
+			S.Timer(function() self:ShowDeath(destGUID, timestamp) return end, 0)
+		-- Death Knight 116888 [Shroud of Purgatory], Mage 87023 [Cauterized] fix
+		elseif (spellID == 116888 or spellID == 87023) and IsOption("Death") then
+			S.Timer(function() death.cheater[destGUID] = CopyTable(death.overkill[destGUID] or death.damage[destGUID]) end, 0)
+		elseif S.CrowdControl[spellID] and IsOption("CrowdControl") then
+			-- 605 Priest [Dominate Mind] fix; applied to both the dest unit and source unit
+			if spellID == 605 and destGUID == sourceGUID then return end
+			SetMessage("CrowdControl")
+		end
+	
+	elseif subevent == "SPELL_AURA_REMOVED" then
+		-- Soulstone
+		if spellID == 20707 and IsOption("Resurrect") and profile.Soulstone then
+			-- this actually sometimes seems to fire after UNIT_DIED; not sure what to do about it...
+			selfres.soulstone[destGUID] = true -- possible soulstone active; also store source
+			selfres.source_soulstone[destGUID] = {sourceGUID, sourceName, sourceFlags, sourceRaidFlags, spellID, spellName, spellSchool}
+			S.Timer(function()
+				if selfres.soulstone[destGUID] == true then
+					selfres.soulstone[destGUID] = nil -- the unit didnt die yet, so the soulstone must have expired
+				end
+			end, 1)
+		-- [Shroud of Purgatory], [Cauterized]
+		elseif (spellID == 116888 or spellID == 87023) and IsOption("Death") then
+			S.Timer(function() death.cheater[destGUID] = nil end, 1) -- in case of survival
+		end
+	
 	elseif subevent == "SPELL_AURA_BROKEN" then
-		if IsOption("Break") then
+		-- track only for broken crowd control spells
+		if IsOption("Break") and S.CrowdControl[spellID] then
 			SetMessage(sourceName and "Break_NoSource" or "Break")
 		end
+	
 	elseif subevent == "SPELL_AURA_BROKEN_SPELL" then
-		if IsOption("Break") then
+		if IsOption("Break") and S.CrowdControl[spellID] then
 			SetMessage("Break_Spell")
 		end
-	elseif subevent == "SPELL_INSTAKILL" then
-		if IsOption("Death") and not S.Blacklist[spellID] then
-			SetMessage("Death_Instakill")
-			-- untested; pray there will be no dmg events between SPELL_INSTAKILL and UNIT_DIED
-			death.unit[destGUID] = nil
-			death.overkill[destGUID] = nil
-			death.damage[destGUID] = nil
+	
+	--------------
+	--- Dispel ---
+	--------------
+	
+	elseif subevent == "SPELL_DISPEL" then
+		if not IsOption("Dispel") then return end
+		local friendly = (sourceReaction == "Friendly" and destReaction == sourceReaction)
+		local hostile = (sourceReaction == "Hostile" and destReaction == sourceReaction)
+		-- cleanses between two (friendly/hostile) units
+		-- bug: its not possible to see whether 2 friendly units are hostile to each other, e.g. dueling
+		if friendly or hostile then
+			if profile.FriendlyDispel then
+				SetMessage("Cleanse")
+			end
+		else
+			if profile.HostileDispel then
+				SetMessage("Dispel")
+			end
 		end
+	
+	elseif subevent == "SPELL_STOLEN" then
+		if IsOption("Dispel") and profile.Spellsteal then
+			SetMessage("Spellsteal")
+		end
+	
+	-----------------
+	--- Resurrect ---
+	-----------------
+	
+	elseif subevent == "SPELL_RESURRECT" then
+		if IsOption("Resurrect") and (not profile.CombatRes or UnitInCombat(sourceName)) then
+			SetMessage("Resurrect")
+		end
+		-- reset self res data; combat res (60%) can be confused with Soulstone
+		-- (which is technically also a combat res)
+		for k in pairs(selfres) do
+			selfres[k][destGUID] = nil
+		end		
+		
 	elseif subevent == "SPELL_HEAL" then
 		if S.Save[spellID] and IsOption("Save") then
 			SetMessage("Save")
 		end
-	elseif subevent == "SPELL_RESURRECT" then
-		-- To Do: add better check, this is kinda lazy
-		if IsOption("Resurrect") and not profile.BattleRez or (profile.BattleRez and UnitAffectingCombat("player")) then
-			SetMessage("Resurrect")
+	
+	elseif subevent == "SPELL_RESURRECT_SELF" then
+		SetMessage(S.SelfResRemap[spellID])
+	end
+	
+	--------------------
+	--- Custom Spell ---
+	--------------------
+	
+	local suffix = strmatch(subevent, "SPELL_(.+)")
+	if spell[suffix] and spell[suffix][spellID] then -- kinda ugly part
+		local noDest = (S.SpellRemap[suffix] == "CAST_SUCCESS" and (not destName or S.SpellSummon[suffix])) and "_NO_DEST" or ""
+		if sourceGUID == player.guid then
+			if profile.SpellFilterSelf then return end
+			args.msg = S.SpellPlayer[S.SpellRemap[suffix]..noDest]
+		else -- check whether or not there is a dest unit; dont show superfluous dest unit for SUMMON and CREATE suffix
+			args.msg = profile.message[S.SpellRemap[suffix]..noDest]
 		end
+		args.color = white
+		args["local"] = bit_band(profile.SpellOutput, 0x1) > 0
+		args.chat = bit_band(profile.SpellOutput, 0x2) > 0
 	end
 	
 	---------------
@@ -623,15 +814,10 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	-- check if there is any message
 	if args.msg then
 		
-		-- timestamp; possibility to also use as an arg
-		args.time, args.timex = S.GetTimestamp()
+		-- timestamp
+		local stamplocal, stampchat = S.GetTimestamp()
 		
-		local resultString = ""
-		if S.DamageEvent[subevent] or S.HealEvent[subevent] then
-			resultString = GetResultString(SuffixParam2, SuffixParam7, SuffixParam8, SuffixParam9)
-		end
-		
-		-- remove braces again; except timestamp
+		-- remove braces again
 		if not profile.UnitBracesLocal then
 			-- src and dest args can be nil in rare cases
 			args.src = args.src and args.src:gsub(braces, "")
@@ -650,54 +836,123 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			args.amount = AbbreviateLargeNumbers(args.amount)
 		end
 		
-		local textLocal = args.time..ReplaceArgs(args)..resultString
-		local textChat = args.timex..ReplaceArgs(args, true)..resultString
+		local resultString = ""
+		if S.DamageEvent[subevent] or S.HealEvent[subevent] then
+			resultString = GetResultString(SuffixParam2, SuffixParam7, SuffixParam8, SuffixParam9)
+		end
+		
+		local textLocal = stamplocal..ReplaceArgs(args)..resultString
+		local textChat = stampchat..ReplaceArgs(args, true)..resultString
 		
 	--------------
 	--- Output ---
 	--------------
 		
-		if args.loc and profile.ChatWindow > 1 then
+		if args["local"] and profile.ChatWindow > 1 then
 			S.ChatFrame:AddMessage(textLocal, unpack(args.color))
 		end
 		
-		-- don't default to "SAY" if chatType is nil
+		-- dont default to "SAY" if chatType is nil
 		if args.chat and profile.ChatChannel > 1 and chatType then
 			-- avoid ERR_CHAT_WHILE_DEAD
-			local DeadTalk = (UnitIsDead("player") or UnitIsGhost("player")) and S.Talk[chatType]
+			local iseedeadpeople = UnitIsDeadOrGhost("player") and S.Talk[chatType]
 			-- dont ever spam the battleground group
-			if not (DeadTalk or S.isBattleground) then
+			if not (iseedeadpeople and S.isBattleground) then
 				SendChatMessage(textChat, chatType, nil, profile.ChatChannel-4)
 			end
 		end
 		
 		-- LibSink; use local event group
-		if args.loc then
+		if args["local"] then
 			self:Pour(profile.sink20OutputSink == "Channel" and textChat or textLocal, unpack(args.color))
 		end
 	end
 end
 
-	------------
-	--- Juke ---
-	------------
+	----------------------
+	--- Death Handling ---
+	----------------------
 
-local Interrupt = {}
-
-function KCL:Juke(timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool)
-	if subevent == "SPELL_CAST_SUCCESS" then -- casted
-		Interrupt[sourceGUID] = true
-		self:ScheduleTimer(function() -- wait for SPELL_INTERRUPT delay/lag
-			self:Juke(timestamp, "CHECK_JUKE", hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool)
-		end, .5)
-	
-	elseif subevent == "SPELL_INTERRUPT" or subevent == "SPELL_MISSED" then -- succesful or failed
-		Interrupt[sourceGUID] = false
-	
-	elseif subevent == "CHECK_JUKE" then
-		if Interrupt[sourceGUID] then -- wasted
-			self:COMBAT_LOG_EVENT_UNFILTERED(_, timestamp, "SPELL_JUKE", hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellID, spellName, spellSchool)
-		end
-		Interrupt[sourceGUID] = false
+	-- ignore overkill if its too old (e.g. false positives happened)
+function KCL:ShowDeath(guid, timestamp)
+	if death.overkill[guid] and timestamp-death.overkill[guid][2] > latencyThreshold then
+		death.overkill[guid] = nil
 	end
+	
+	local cleu
+	local class = GetPlayerClass[guid]
+	if class == "HUNTER" and not guid == player.guid then -- UNIT_DIED is (98% of the time) genuine if the player is a hunter himself and died
+		-- dem pussy huntards feigning death; demand them to die from overkill, or not at all!
+		-- UnitIsFeignDeath (deprecated) and UnitBuff (5384 spellname) and UNIT_SPELLCAST_SUCCEEDED only partially help if they only work for unit ids
+		cleu = death.overkill[guid]
+	elseif class == "DEATHKNIGHT" or class == "MAGE" then
+		death.whosyourdaddy[guid] = death.cheater[guid] and true
+		cleu = death.cheater[guid] or death.overkill[guid] or death.damage[guid]
+	else -- prioritize any overkill events over normal dmg events
+		cleu = death.overkill[guid] or death.damage[guid]
+	end
+	
+	if cleu and not death.deleted[guid] then -- ignore instagibbed units
+		death.time[guid] = timestamp -- set death flag
+		-- fire the fatal event again; note that there are nil values in the table (from the environmental_damage event)
+		self:COMBAT_LOG_EVENT_UNFILTERED(unpack(cleu, 1, table_maxn(cleu)))
+	end
+	
+	-- reset death flag/data
+	for k in pairs(death) do
+		death[k][guid] = nil
+	end
+end
+
+	---------------------------------
+	--- Soulstone / Reincarnation ---
+	---------------------------------
+
+--[[
+	1  track when a shaman or soulstoned unit dies
+	2a look if the unit is visible and still in its corpse, and doesnt release spirit to ghost
+	2b rule out normal/combat resurrections by other people
+	3c rule out ress by the spirit healer or corpse running (already requires release spirit to ghost)
+	3  compare sudden health increase from zero to e.g. 60 percent
+	
+	if health == 0 or UnitIsDead == 1 then unit is in its corpse
+	if health == 1 or UnitIsGhost == 1 then unit released spirit and is a ghost
+	
+	Soulstone = 60% (.5999) health; 100% with [Glyph of Soulstone]
+	Reincarnation = 20%
+	Normal resurrection = 35%
+	Spirit Healer / corpse running = 50%
+	(Combat Res) Rebirth, Raise Ally = 60%; can be confused with Soulstone
+	[Darkmoon Card: Twisting Nether] = 20%; can be confused with Reincarnation
+	
+	soulstone has precedence over reincarnation when used on a shaman, only the soulstone will show as an option. reincarnation is not wasted
+	a normal resurrection overrides any soulstone/reincarnation for 1 minute, then soulstone/reincarnation will show again as an option
+	the soulstone buff on holy priests fades simultaenously with the guardian spirit buff. there are no problems afaik
+	* UnitIsVisible already accounts for UnitIsConnected
+]]
+
+function KCL:UNIT_HEALTH(event, unit)
+	local guid = UnitGUID(unit) -- firstly filter out most of the stuff
+	if (not selfres.soulstone[guid] and not selfres.reincarnation[guid]) or not UnitIsVisible(unit) then return end
+	
+	local health = UnitHealth(unit)
+	local delta = (health-(selfres.prevHealth[guid] or 0)) / UnitHealthMax(unit)
+	selfres.prevHealth[guid] = health
+	
+	-- confirm unit is dead (again) for the subsequent UNIT_HEALTH event, where it should be alive
+	if UnitIsDead(unit) then selfres.wasDead[guid] = true; return end
+	
+	-- unit is now alive; check if it was previously dead
+	if selfres.wasDead[guid] then
+		if selfres.soulstone[guid] and (S.Approx(delta, .6, deviation) or S.Approx(delta, 1, deviation)) then
+			self:COMBAT_LOG_EVENT_UNFILTERED(unpack(selfres.soulstone[guid], 1, table_maxn(selfres.soulstone[guid])))
+		elseif selfres.reincarnation[guid] and S.Approx(delta, .2, deviation) then
+			self:COMBAT_LOG_EVENT_UNFILTERED(unpack(selfres.reincarnation[guid]))
+		end
+	end
+	
+	-- reset self res data
+	for k in pairs(selfres) do
+		selfres[k][guid] = nil
+	end		
 end

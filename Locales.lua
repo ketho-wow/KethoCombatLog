@@ -1,10 +1,23 @@
 ﻿local _, S = ...
 
+local tags = {
+	[1] = "<SRC>",
+	[2] = "<SPELL>",
+	[4] = "<DEST>",
+	[6] = "",
+}
+
+local function Convert(s)
+	for k, v in pairs(tags) do
+		s = s:gsub("%%"..k.."%$s", v)
+	end
+	return s:gsub("%.", "")
+end
+
 local L = {
 	enUS = {
 		EVENT_JUKE = "Juke",
 		EVENT_CROWDCONTROL = "Crowd Control",
-		EVENT_BREAK = GetSpellInfo(82881), -- "Break"
 		EVENT_SAVE = "Save",
 		
 		MSG_TAUNT = "<SRC><SPELL> taunted <DEST>",
@@ -22,7 +35,8 @@ local L = {
 		MSG_CROWDCONTROL = "<SRC><SPELL> CC'ed <DEST>",
 		MSG_BREAK = "<SRC> "..ACTION_SPELL_AURA_BROKEN.." <SPELL> on <DEST>",
 		MSG_BREAK_NOSOURCE = "<SPELL> on <DEST> "..ACTION_SPELL_AURA_BROKEN,
-		MSG_BREAK_SPELL = "<SRC><SPELL> "..ACTION_SPELL_AURA_BROKEN.." <XSPELL> on <DEST>",
+		-- this particular spell and extraspell order is extra confusing :x
+		MSG_BREAK_SPELL = "<SRC><XSPELL> "..ACTION_SPELL_AURA_BROKEN.." <SPELL> on <DEST>",
 		
 		MSG_DEATH = "<DEST> "..ACTION_UNIT_DIED.." <SRC><SPELL> <AMOUNT> <SCHOOL>",
 		MSG_DEATH_MELEE = "<DEST> "..ACTION_UNIT_DIED.." <SRC> <AMOUNT> "..ACTION_SWING,
@@ -31,22 +45,31 @@ local L = {
 		
 		MSG_SAVE = "<SRC><SPELL> saved <DEST> <AMOUNT> <SCHOOL>",
 		MSG_RESURRECT = "<SRC><SPELL> "..ACTION_SPELL_RESURRECT.." <DEST>",
+		-- source and dest are switched
+		MSG_SELFRES_SOULSTONE = "<SRC> used <DEST><SPELL>",
+		MSG_SELFRES_REINCARNATION = "<SRC> "..ACTION_SPELL_CAST_SUCCESS.." <SPELL>",
 		
+		MSG_SPELL_CAST_START = Convert(ACTION_SPELL_CAST_START_FULL_TEXT_NO_DEST),
+		MSG_SPELL_CAST_SUCCESS = Convert(ACTION_SPELL_CAST_SUCCESS_FULL_TEXT),
+		MSG_SPELL_CAST_SUCCESS_NO_DEST = Convert(ACTION_SPELL_CAST_SUCCESS_FULL_TEXT_NO_DEST),
+		
+		LOCAL = "Local",
 		SELF = "Self",
-		
+		ENEMY_PLAYERS_CLASS_COLORS = "Color enemy players by class",
 		ABBREVIATE_LARGE_NUMBERS = "Abbreviate Large Numbers",
+		
 		USE_CLASS_COLORS = "Please use the |cff71D5FFClass Colors|r AddOn",
 		BROKER_CLICK = "|cffFFFFFFClick|r to open the options menu",
 		BROKER_SHIFT_CLICK = "|cffFFFFFFShift-click|r to toggle this AddOn",
 	},
 	deDE = {
-		EVENT_BREAK = "CC Brechen", -- Needs review
+		ABBREVIATE_LARGE_NUMBERS = "Kürze lange Zahlen", -- Needs review
 		EVENT_CROWDCONTROL = "Crowd Control", -- Needs review
 		EVENT_JUKE = "Verschwendung", -- Needs review
 		EVENT_SAVE = "Rettung", -- Needs review
 		MSG_BREAK = "<SRC> brach <SPELL> auf <DEST>", -- Needs review
 		MSG_BREAK_NOSOURCE = "<SPELL> auf <DEST> brach", -- Needs review
-		MSG_BREAK_SPELL = "<SRC><SPELL> brach <XSPELL> auf <DEST>", -- Needs review
+		MSG_BREAK_SPELL = "<SRC><XSPELL> brach <SPELL> auf <DEST>", -- Needs review
 		MSG_CLEANSE = "<SRC><SPELL> reinigte <DEST><XSPELL>", -- Needs review
 		MSG_CROWDCONTROL = "<SRC><SPELL> CC'ed <DEST>", -- Needs review
 		MSG_DEATH = "<DEST> starb <SRC><SPELL> <AMOUNT> <SCHOOL>", -- Needs review
@@ -64,7 +87,6 @@ local L = {
 		MSG_TAUNT = "<SRC><SPELL> spottet <DEST>", -- Needs review
 		SELF = "Selbst", -- Needs review
 		
-		ABBREVIATE_LARGE_NUMBERS = "Kürze lange Zahlen",
 		USE_CLASS_COLORS = "Bitte benützt dafür das |cff71D5FFClass Colors|r AddOn",
 		BROKER_CLICK = "|cffFFFFFFKlickt|r, um das Optionsmenü zu öffnen",
 		BROKER_SHIFT_CLICK = "|cffFFFFFFShift-klickt|r, um dieses AddOn ein-/auszuschalten",
