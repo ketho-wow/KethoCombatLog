@@ -20,6 +20,7 @@ local select = select
 local format = format
 
 local numberExample = random(1e5, 1e6)
+local parentheses = "[()]"
 -- Show Time Warp for Mage, Bloodlust for Horde, Heroism for Alliance; Naming the variable Bloodlust because of the original Warcraft 3
 local Bloodlust = (S.player.class == "MAGE") and {GetSpellInfo(80353)} or (UnitFactionGroup("player") == "Horde") and {GetSpellInfo(2825)} or {GetSpellInfo(32182)}
 
@@ -121,11 +122,9 @@ S.defaults = { -- KethoCombatLog.db.defaults
 			Soulstone = L.MSG_SELFRES_SOULSTONE,
 			Reincarnation = L.MSG_SELFRES_REINCARNATION,
 			
-			CAST_START = L.MSG_SPELL_CAST_START,
-			CAST_SUCCESS_NO_DEST = L.MSG_SPELL_CAST_SUCCESS_NO_DEST,
-			CAST_SUCCESS = L.MSG_SPELL_CAST_SUCCESS,
-			SUMMON = L.MSG_SPELL_SUMMON,
-			CREATE = L.MSG_SPELL_CREATE,
+			CAST_START = S.SpellMsg.unit.CAST_START,
+			CAST_SUCCESS_NO_DEST = S.SpellMsg.unit.CAST_SUCCESS_NO_DEST,
+			CAST_SUCCESS = S.SpellMsg.unit.CAST_SUCCESS,
 		},
 		
 		sink20OutputSink = "None",
@@ -168,7 +167,7 @@ S.options = {
 				spacing = {type = "description", order = 3, name = ""},
 				PvE = {
 					type = "toggle", order = 4, width = "half", descStyle = "",
-					name = " |cffA8A8FFPvE|r", -- /dump ChatTypeInfo.PARTY {r = 0.666, g = 0.666, b = 1.000}
+					name = " |cffA8A8FF"..COMPACT_UNIT_FRAME_PROFILE_AUTOACTIVATEPVE.."|r", -- /dump ChatTypeInfo.PARTY {r = 0.666, g = 0.666, b = 1.000}
 					set = "SetValue_Instance",
 				},
 				PvP = {
@@ -178,7 +177,7 @@ S.options = {
 				},
 				World = {
 					type = "toggle", order = 6, width = "half", descStyle = "",
-					name = " World",
+					name = " "..CHANNEL_CATEGORY_WORLD,
 					set = "SetValue_Instance",
 				},
 				ChatFilter = {
@@ -291,17 +290,17 @@ S.options = {
 						CriticalFormat = {
 							type = "toggle", order = 12,
 							desc = "<message> |cff71D5FF"..TEXT_MODE_A_STRING_RESULT_CRITICAL.."|r",
-							name = gsub(TEXT_MODE_A_STRING_RESULT_CRITICAL, "[()]", ""),
+							name = gsub(TEXT_MODE_A_STRING_RESULT_CRITICAL, parentheses, ""),
 						},
 						GlancingFormat = {
 							type = "toggle", order = 13,
 							desc = "<message> |cff71D5FF"..TEXT_MODE_A_STRING_RESULT_GLANCING .."|r",
-							name = gsub(TEXT_MODE_A_STRING_RESULT_GLANCING, "[()]", ""),
+							name = gsub(TEXT_MODE_A_STRING_RESULT_GLANCING, parentheses, ""),
 						},
 						CrushingFormat = {
 							type = "toggle", order = 14,
 							desc = "<message> |cff71D5FF"..TEXT_MODE_A_STRING_RESULT_CRUSHING.."|r",
-							name = gsub(TEXT_MODE_A_STRING_RESULT_CRUSHING, "[()]", ""),
+							name = gsub(TEXT_MODE_A_STRING_RESULT_CRUSHING, parentheses, ""),
 						},
 						AbbreviateNumbers = {
 							type = "toggle", order = 15, width = "full",
@@ -409,7 +408,7 @@ S.options = {
 					args = {
 						note = {
 							type = "description", order = 1, fontSize = "medium",
-							name = "For more advanced use and customization, I suggest |cff57A3FFPower Auras|r / |cff57A3FFWeakAuras|r / |cff57A3FFRaeli's Spell Announcer|r, or editing the source code\n"
+							name = "For more advanced use/customization, I suggest |cff57A3FFPower Auras|r / |cff57A3FFWeakAuras|r / |cff57A3FFRaeli's Spell Announcer|r, or editing the source code\n"
 						},
 						Feast = {
 							type = "toggle", order = 2, descStyle = "",
@@ -631,11 +630,11 @@ end
 do
 	local o = options.args.Advanced.args.Spell.args
 	
-	for i, v in ipairs(S.SpellMsg) do
+	for i, v in ipairs(S.SpellMsgOptionKey) do
 		o[v] = {
 			type = "input", order = i+30,
 			width = "full", descStyle = "",
-			name = "  "..S.SpellString[v],
+			name = "  "..S.SpellMsgOptionValue[v],
 			get = "GetMessage", set = "SetMessage",
 		}
 	end

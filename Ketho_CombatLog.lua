@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.17 [2014.04.17]			---
+--- Version: 1.18 [2014.04.18]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -246,24 +246,45 @@ S.SelfResRemap = {
 	--- Custom Spell ---
 	--------------------
 
+local tags = {
+	[1] = "<SRC>",
+	[2] = "<SPELL>",
+	[4] = "<DEST>",
+	[6] = "",
+}
+
+local function ConvertTags(s)
+	for k, v in pairs(tags) do
+		s = s:gsub("%%"..k.."%$s", v)
+	end
+	return s:gsub("%.", "")
+end
+
 S.SpellMsg = {
+	unit = {
+		CAST_START = ConvertTags(ACTION_SPELL_CAST_START_FULL_TEXT_NO_DEST),
+		CAST_SUCCESS = ConvertTags(ACTION_SPELL_CAST_SUCCESS_FULL_TEXT),
+		CAST_SUCCESS_NO_DEST = ConvertTags(ACTION_SPELL_CAST_SUCCESS_FULL_TEXT_NO_DEST),
+	},
+	-- for casts done by yourself, the Blizzard_CombatLog kinda does this the same way
+	-- not sure about making this message customizable, I think it would clutter up the spell messages
+	player = {
+		CAST_START = "<SRC> "..ACTION_SPELL_CAST_START.." <SPELL>",
+		CAST_SUCCESS_NO_DEST = "<SRC> "..ACTION_SPELL_CAST_SUCCESS.." <SPELL>",
+		CAST_SUCCESS = "<SRC> "..ACTION_SPELL_CAST_SUCCESS.." <SPELL><DEST>",
+	},
+}
+
+S.SpellMsgOptionKey = {
 	"CAST_START",
 	"CAST_SUCCESS_NO_DEST",
 	"CAST_SUCCESS",
 }
 
-S.SpellString = {
+S.SpellMsgOptionValue = {
 	CAST_START = SPELL_CAST_START_COMBATLOG_TOOLTIP,
 	CAST_SUCCESS_NO_DEST = SPELL_CAST_SUCCESS_COMBATLOG_TOOLTIP.." ("..SPELL_FAILED_BAD_IMPLICIT_TARGETS..")",
 	CAST_SUCCESS = SPELL_CAST_SUCCESS_COMBATLOG_TOOLTIP,
-}
-
--- the Blizzard_CombatLog kinda does this the same way, for casts done by yourself
--- not sure about making this message customizable, I think it would clutter up the spell messages
-S.SpellPlayer = {
-	CAST_START = "<SRC> "..ACTION_SPELL_CAST_START.." <SPELL>",
-	CAST_SUCCESS_NO_DEST = "<SRC> "..ACTION_SPELL_CAST_SUCCESS.." <SPELL>",
-	CAST_SUCCESS = "<SRC> "..ACTION_SPELL_CAST_SUCCESS.." <SPELL><DEST>",
 }
 
 S.SpellRemap = {
@@ -369,7 +390,8 @@ end
 
 -- only for class colors
 S.ClassColor = setmetatable({}, {__index = function(t, k)
-	local color = (CUSTOM_CLASS_COLORS or profile.color)[k or "PRIEST"] -- fallback
+	k = k or "PRIEST" -- fallback
+	local color = (CUSTOM_CLASS_COLORS or profile.color)[k]
 	local v = format("%02X%02X%02X", color.r*255, color.g*255, color.b*255)
 	rawset(t, k, v)
 	return v
@@ -449,7 +471,7 @@ local exampleTime = time({ -- FrameXML\InterfaceOptionsPanels.lua
 	sec = 32,
 })
 
-S.xmpl_timestamps = {} 
+S.xmpl_timestamps = {}
 
 for i, v in ipairs(timestamp) do
 	S.xmpl_timestamps[i] = BetterDate(v, exampleTime)

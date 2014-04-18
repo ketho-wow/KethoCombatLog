@@ -234,6 +234,10 @@ S.PetInterrupt = {
 
  -- ignore pet taunts on dummies
 S.TrainingDummy = {
+	[32666] = true, -- [Training Dummy] (Level 60)
+	[32667] = true, -- [Training Dummy] (Level 70)
+	[31144] = true, -- [Training Dummy] (Level 80)
+	[46647] = true, -- [Training Dummy] (Level 85)
+	[67127] = true, -- [Training Dummy] (Level 90)
 	[31146] = true, -- [Raider's Training Dummy]
-	[67127] = true, -- [Training Dummy]
 }

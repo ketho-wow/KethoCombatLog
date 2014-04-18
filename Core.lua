@@ -45,11 +45,6 @@ local TEXT_MODE_A_STRING_RESULT_CRITICAL = TEXT_MODE_A_STRING_RESULT_CRITICAL
 local TEXT_MODE_A_STRING_RESULT_GLANCING = TEXT_MODE_A_STRING_RESULT_GLANCING
 local TEXT_MODE_A_STRING_RESULT_CRUSHING = TEXT_MODE_A_STRING_RESULT_CRUSHING
 
-local args = {}
-local braces = "[%[%]]"
-local white = {1, 1, 1}
-local chatType
-
 -- users are free to change this
 local latencyThreshold = 1 -- only accept damage that occured within a x seconds time frame before death
 local deviation = .02 -- approximation precision for selfres health delta
@@ -65,11 +60,11 @@ local death = {
 }
 
 -- reincarnation never actually shows up in CLEU
-local spell_reincarnation = {20608, GetSpellInfo(20608), 8}
+local Reincarnation = {20608, GetSpellInfo(20608), 8}
 
 local selfres = {
 	soulstone = {}, -- Warlock Soulstone
-	source_soulstone = {}, -- merge source args for the original Soulstone caster
+	soulstone_source = {}, -- merge source args for the original Soulstone caster
 	reincarnation = {}, -- Shaman Reincarnation
 	
 	prevHealth = {}, -- compare to current health for delta
@@ -85,6 +80,13 @@ local spell = { -- lookup table for currently enabled custom spells
 	CREATE = {},
 	SUMMON = {},
 }
+
+local args = {}
+local braces = "[%[%]]"
+local white = {1, 1, 1}
+
+local chatType
+local isBattleground
 
 	--------------
 	--- # Ace3 ---
@@ -262,7 +264,7 @@ function KCL:ZONE_CHANGED_NEW_AREA(event)
 	local pve = profile.PvE and S.PvE[instanceType]
 	local pvp = profile.PvP and S.PvP[instanceType]
 	local world = profile.World and instanceType == "none"
-	S.isBattleground = (instanceType == "pvp")
+	isBattleground = (instanceType == "pvp")
 	
 	self[(pve or pvp or world) and "RegisterEvent" or "UnregisterEvent"](self, "COMBAT_LOG_EVENT_UNFILTERED")
 end
@@ -599,19 +601,23 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		
 		-- store cleu event for if the unit possibly resurrects itself; very hacky
 		-- soulstone has precedence over reincarnation when cast on a shaman
-		if selfres.soulstone[destGUID] == true then -- confirm unit death with soulstone active
+		if selfres.soulstone_source[destGUID] then -- confirm unit death with soulstone active
 			selfres.soulstone[destGUID] = {event, ...}
-			local ss, source_ss = selfres.soulstone[destGUID], selfres.source_soulstone[destGUID]
-			ss[3] = "SPELL_RESURRECT_SELF"
-			for i = 5, 8 do ss[i] = source_ss[i-4] end -- copy source
-			for i = 13, 15 do ss[i] = source_ss[i-8] end -- copy spell
-			SwitchSourceDest(ss) -- switch source and dest because if used on self it shows "[Self] used [Player][Soulstone]"
+			selfres.soulstone[destGUID][3] = "SPELL_RESURRECT_SELF"
+			for i = 5, 8 do
+				selfres.soulstone[destGUID][i] = selfres.soulstone_source[destGUID][i-4] -- copy source
+			end
+			for i = 13, 15 do
+				selfres.soulstone[destGUID][i] = selfres.soulstone_source[destGUID][i-8] -- copy spell
+			end
+			SwitchSourceDest(selfres.soulstone[destGUID]) -- switch source and dest because if used on self it shows "[Self] used [Player][Soulstone]"
 		elseif GetPlayerClass[destGUID] == "SHAMAN" and profile.Reincarnation then -- possible reincarnation active
 			selfres.reincarnation[destGUID] = {event, ...}
-			local re = selfres.reincarnation[destGUID]
-			re[3] = "SPELL_RESURRECT_SELF"
-			for i, v in ipairs(spell_reincarnation) do re[i+12] = v end -- copy spell
-			SwitchSourceDest(re)
+			selfres.reincarnation[destGUID][3] = "SPELL_RESURRECT_SELF"
+			for i, v in ipairs(Reincarnation) do
+				selfres.reincarnation[destGUID][i+12] = v -- copy spell
+			end
+			SwitchSourceDest(selfres.reincarnation[destGUID])
 		end
 		
 		return -- avoid double messages (the args from re-fired CLEU werent wiped)
@@ -718,11 +724,11 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		-- Soulstone
 		if spellID == 20707 and IsOption("Resurrect") and profile.Soulstone then
 			-- this actually sometimes seems to fire after UNIT_DIED; not sure what to do about it...
-			selfres.soulstone[destGUID] = true -- possible soulstone active; also store source
-			selfres.source_soulstone[destGUID] = {sourceGUID, sourceName, sourceFlags, sourceRaidFlags, spellID, spellName, spellSchool}
+			-- possible soulstone active; store source and use that as a flag
+			selfres.soulstone_source[destGUID] = {sourceGUID, sourceName, sourceFlags, sourceRaidFlags, spellID, spellName, spellSchool}
 			S.Timer(function()
-				if selfres.soulstone[destGUID] == true then
-					selfres.soulstone[destGUID] = nil -- the unit didnt die yet, so the soulstone must have expired
+				if not selfres.soulstone[destGUID] then
+					selfres.soulstone_source[destGUID] = nil -- the unit didnt die yet, so the soulstone must have expired instead
 				end
 			end, 1)
 		-- [Shroud of Purgatory], [Cauterized]
@@ -733,7 +739,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	elseif subevent == "SPELL_AURA_BROKEN" then
 		-- track only for broken crowd control spells
 		if IsOption("Break") and S.CrowdControl[spellID] then
-			SetMessage(sourceName and "Break_NoSource" or "Break")
+			SetMessage(sourceName and "Break" or "Break_NoSource")
 		end
 	
 	elseif subevent == "SPELL_AURA_BROKEN_SPELL" then
@@ -798,7 +804,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		local noDest = (S.SpellRemap[suffix] == "CAST_SUCCESS" and (not destName or S.SpellSummon[suffix])) and "_NO_DEST" or ""
 		if sourceGUID == player.guid then
 			if profile.SpellFilterSelf then return end
-			args.msg = S.SpellPlayer[S.SpellRemap[suffix]..noDest]
+			args.msg = S.SpellMsg.player[S.SpellRemap[suffix]..noDest]
 		else -- check whether or not there is a dest unit; dont show superfluous dest unit for SUMMON and CREATE suffix
 			args.msg = profile.message[S.SpellRemap[suffix]..noDest]
 		end
@@ -836,10 +842,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			args.amount = AbbreviateLargeNumbers(args.amount)
 		end
 		
-		local resultString = ""
-		if S.DamageEvent[subevent] or S.HealEvent[subevent] then
-			resultString = GetResultString(SuffixParam2, SuffixParam7, SuffixParam8, SuffixParam9)
-		end
+		local resultString = (S.DamageEvent[subevent] or S.HealEvent[subevent]) and GetResultString(SuffixParam2, SuffixParam7, SuffixParam8, SuffixParam9) or ""
 		
 		local textLocal = stamplocal..ReplaceArgs(args)..resultString
 		local textChat = stampchat..ReplaceArgs(args, true)..resultString
@@ -857,7 +860,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			-- avoid ERR_CHAT_WHILE_DEAD
 			local iseedeadpeople = UnitIsDeadOrGhost("player") and S.Talk[chatType]
 			-- dont ever spam the battleground group
-			if not (iseedeadpeople and S.isBattleground) then
+			if not (iseedeadpeople or isBattleground) then
 				SendChatMessage(textChat, chatType, nil, profile.ChatChannel-4)
 			end
 		end
@@ -873,8 +876,8 @@ end
 	--- Death Handling ---
 	----------------------
 
-	-- ignore overkill if its too old (e.g. false positives happened)
 function KCL:ShowDeath(guid, timestamp)
+	-- ignore overkill if its too old (e.g. false positives happened)
 	if death.overkill[guid] and timestamp-death.overkill[guid][2] > latencyThreshold then
 		death.overkill[guid] = nil
 	end
@@ -945,7 +948,7 @@ function KCL:UNIT_HEALTH(event, unit)
 	-- unit is now alive; check if it was previously dead
 	if selfres.wasDead[guid] then
 		if selfres.soulstone[guid] and (S.Approx(delta, .6, deviation) or S.Approx(delta, 1, deviation)) then
-			self:COMBAT_LOG_EVENT_UNFILTERED(unpack(selfres.soulstone[guid], 1, table_maxn(selfres.soulstone[guid])))
+			self:COMBAT_LOG_EVENT_UNFILTERED(unpack(selfres.soulstone[guid]))
 		elseif selfres.reincarnation[guid] and S.Approx(delta, .2, deviation) then
 			self:COMBAT_LOG_EVENT_UNFILTERED(unpack(selfres.reincarnation[guid]))
 		end

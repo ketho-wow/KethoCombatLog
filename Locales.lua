@@ -1,19 +1,5 @@
 ﻿local _, S = ...
 
-local tags = {
-	[1] = "<SRC>",
-	[2] = "<SPELL>",
-	[4] = "<DEST>",
-	[6] = "",
-}
-
-local function Convert(s)
-	for k, v in pairs(tags) do
-		s = s:gsub("%%"..k.."%$s", v)
-	end
-	return s:gsub("%.", "")
-end
-
 local L = {
 	enUS = {
 		EVENT_JUKE = "Juke",
@@ -33,10 +19,10 @@ local L = {
 		MSG_MISS = "<SRC><SPELL> on <DEST> "..ACTION_SPELL_CAST_FAILED.." (<TYPE>)",
 		
 		MSG_CROWDCONTROL = "<SRC><SPELL> CC'ed <DEST>",
-		MSG_BREAK = "<SRC> "..ACTION_SPELL_AURA_BROKEN.." <SPELL> on <DEST>",
-		MSG_BREAK_NOSOURCE = "<SPELL> on <DEST> "..ACTION_SPELL_AURA_BROKEN,
 		-- this particular spell and extraspell order is extra confusing :x
-		MSG_BREAK_SPELL = "<SRC><XSPELL> "..ACTION_SPELL_AURA_BROKEN.." <SPELL> on <DEST>",
+		MSG_BREAK_SPELL = "<SRC><XSPELL> "..ACTION_SPELL_AURA_BROKEN.." <DEST><SPELL>",
+		MSG_BREAK = "<SRC> "..ACTION_SPELL_AURA_BROKEN.." <DEST><SPELL>",
+		MSG_BREAK_NOSOURCE = "<SPELL> on <DEST> "..ACTION_SPELL_AURA_BROKEN,
 		
 		MSG_DEATH = "<DEST> "..ACTION_UNIT_DIED.." <SRC><SPELL> <AMOUNT> <SCHOOL>",
 		MSG_DEATH_MELEE = "<DEST> "..ACTION_UNIT_DIED.." <SRC> <AMOUNT> "..ACTION_SWING,
@@ -48,10 +34,6 @@ local L = {
 		-- source and dest are switched
 		MSG_SELFRES_SOULSTONE = "<SRC> used <DEST><SPELL>",
 		MSG_SELFRES_REINCARNATION = "<SRC> "..ACTION_SPELL_CAST_SUCCESS.." <SPELL>",
-		
-		MSG_SPELL_CAST_START = Convert(ACTION_SPELL_CAST_START_FULL_TEXT_NO_DEST),
-		MSG_SPELL_CAST_SUCCESS = Convert(ACTION_SPELL_CAST_SUCCESS_FULL_TEXT),
-		MSG_SPELL_CAST_SUCCESS_NO_DEST = Convert(ACTION_SPELL_CAST_SUCCESS_FULL_TEXT_NO_DEST),
 		
 		LOCAL = "Local",
 		SELF = "Self",
@@ -67,9 +49,9 @@ local L = {
 		EVENT_CROWDCONTROL = "Crowd Control", -- Needs review
 		EVENT_JUKE = "Verschwendung", -- Needs review
 		EVENT_SAVE = "Rettung", -- Needs review
-		MSG_BREAK = "<SRC> brach <SPELL> auf <DEST>", -- Needs review
+		MSG_BREAK = "<SRC> brach <DEST><SPELL>", -- Needs review
 		MSG_BREAK_NOSOURCE = "<SPELL> auf <DEST> brach", -- Needs review
-		MSG_BREAK_SPELL = "<SRC><XSPELL> brach <SPELL> auf <DEST>", -- Needs review
+		MSG_BREAK_SPELL = "<SRC><XSPELL> brach <DEST><SPELL>", -- Needs review
 		MSG_CLEANSE = "<SRC><SPELL> reinigte <DEST><XSPELL>", -- Needs review
 		MSG_CROWDCONTROL = "<SRC><SPELL> CC'ed <DEST>", -- Needs review
 		MSG_DEATH = "<DEST> starb <SRC><SPELL> <AMOUNT> <SCHOOL>", -- Needs review
