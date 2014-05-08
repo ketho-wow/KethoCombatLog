@@ -79,22 +79,33 @@ local L = {
 	},
 	--esMX = {},
 	frFR = {
+		SELF = "Soi-même",
 	},
 	itIT = {
+		SELF = "Stesso", -- google translate
 	},
 	koKR = {
 		EVENT_CROWDCONTROL = "군중제어", -- Needs review
+		SELF = "저", -- google translate
 	},
 	ptBR = {
+		SELF = "Maga", -- google translate
 	},
 	ruRU = {
+		SELF = "Персонаж",
 	},
 	zhCN = {
+		SELF = "自己",
+		
 		USE_CLASS_COLORS = "请使用 |cff71D5FFClassColors|r 插件", -- Needs review
 		BROKER_CLICK = "|cffFFFFFF点击|r打开选项菜单",
 		BROKER_SHIFT_CLICK = "|cffFFFFFFrShift-点击|r 启用或禁用插件",
 	},
 	zhTW = {
+		SELF = "自己",
+		USE_CLASS_COLORS = "請使用 |cff71D5FFClassColors|r 插件", -- Needs review
+		BROKER_CLICK = "|cffFFFFFF點擊|r打開選項菜單",
+		BROKER_SHIFT_CLICK = "|cffFFFFFFrShift-點擊|r 啟用或禁用插件",
 	},
 }
 

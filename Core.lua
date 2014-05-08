@@ -197,7 +197,8 @@ function KCL:RefreshEvent()
 	-- for efficiency, RegisterUnitEvent came to mind, but it doesnt fit in with Ace3
 	-- it would also only take unit ids, and for some reason, not names
 	-- unit ids are kinda hard to get from CLEU and they can change
-	self[(profile.Soulstone or profile.Reincarnation) and "RegisterEvent" or "UnregisterEvent"](self, "UNIT_HEALTH")
+	local isHealth = (profile.LocalResurrect or profile.ChatResurrect) and (profile.Soulstone or profile.Reincarnation)
+	self[isHealth and "RegisterEvent" or "UnregisterEvent"](self, "UNIT_HEALTH")
 end
 
 function KCL:RefreshSpell(option)
@@ -480,7 +481,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local petspell, _, _, miss = select(12, ...)
 	local isMissEvent = (S.MissEvent[subevent] and S.MissType[miss])
 	local isReverseEvent = S.DamageEvent[subevent] or isMissEvent or subevent == "UNIT_DIED"
-	-- petz are not a players but we still want to see when they do anything important
+	-- pets are not players but we still want to see when they do anything important
 	local isPet = S.PetTaunt[petspell] or S.PetInterrupt[petspell]
 	
 	--------------
@@ -498,42 +499,6 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		if not profile.FilterPlayers then return end
 	else
 		if not profile.FilterMonsters then return end
-	end
-	
-	------------
-	--- Unit ---
-	------------
-	
-	-- reaction variable also used for in SPELL_DISPEL
-	local sourceReaction = UnitReaction(sourceFlags)
-	local destReaction = UnitReaction(destFlags)
-	
-	if sourceName then -- if no unit, then guid is an empty string and name is nil
-		-- trim out (CRZ) realm name; only do this for players
-		local name = (sourcePlayer and profile.TrimRealm) and strmatch(sourceName, "([^%-]+)%-?.*") or sourceName
-		local fname = (sourceGUID == player.guid) and UNIT_YOU_SOURCE or name
-		local sourceIconLocal, sourceIconChat = UnitIcon(sourceRaidFlags, 1)
-		local color = S.GeneralColor[sourceReaction] -- sometimes early on GetPlayerClass returns nil so we do this first
-		if sourcePlayer and (profile.ColorEnemyPlayers or sourceReaction == "Friendly") then
-			color = S.ClassColor[GetPlayerClass[sourceGUID]]
-		end
-		
-		args.src = format("|cff%s"..TEXT_MODE_A_STRING_SOURCE_UNIT.."|r", color, sourceIconLocal, sourceGUID, sourceName, "["..fname.."]")
-		args.srcx = format("%s[%s]", sourceIconChat, name)
-	end
-	
-	if destName then
-		local isSelf = (destGUID == sourceGUID) and not isReverseEvent -- avoid "[Self] died from [Player][Spell]" if a unit died by its own damage
-		local name = isSelf and L.SELF or (destPlayer and profile.TrimRealm) and strmatch(destName, "([^%-]+)%-?.*") or destName
-		local fname = (destGUID == player.guid) and UNIT_YOU_DEST or name
-		local destIconLocal, destIconChat = UnitIcon(destRaidFlags, 2)
-		local color = S.GeneralColor[destReaction] 
-		if destPlayer and (profile.ColorEnemyPlayers or destReaction == "Friendly") then
-			color = S.ClassColor[GetPlayerClass[destGUID]]
-		end
-		
-		args.dest = format("|cff%s"..TEXT_MODE_A_STRING_DEST_UNIT.."|r", color, destIconLocal, destGUID, destName, "["..fname.."]")
-		args.destx = format("%s[%s]", destIconChat, name)
 	end
 	
 	--------------
@@ -713,7 +678,9 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			S.Timer(function() self:ShowDeath(destGUID, timestamp) return end, 0)
 		-- Death Knight 116888 [Shroud of Purgatory], Mage 87023 [Cauterized] fix
 		elseif (spellID == 116888 or spellID == 87023) and IsOption("Death") then
-			S.Timer(function() death.cheater[destGUID] = CopyTable(death.overkill[destGUID] or death.damage[destGUID]) end, 0)
+			if death.overkill[destGUID] or death.damage[destGUID] then -- sanity check so CopyTable doesnt choke on empty tables
+				S.Timer(function() death.cheater[destGUID] = CopyTable(death.overkill[destGUID] or death.damage[destGUID]) end, 0)
+			end
 		elseif S.CrowdControl[spellID] and IsOption("CrowdControl") then
 			-- 605 Priest [Dominate Mind] fix; applied to both the dest unit and source unit
 			if spellID == 605 and destGUID == sourceGUID then return end
@@ -819,6 +786,42 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	
 	-- check if there is any message
 	if args.msg then
+	
+	------------
+	--- Unit ---
+	------------
+		
+		-- reaction variable also used for in SPELL_DISPEL
+		local sourceReaction = UnitReaction(sourceFlags)
+		local destReaction = UnitReaction(destFlags)
+		
+		if sourceName then -- if no unit, then guid is an empty string and name is nil
+			-- trim out (CRZ) realm name; only do this for players
+			local name = (sourcePlayer and profile.TrimRealm) and strmatch(sourceName, "([^%-]+)%-?.*") or sourceName
+			local fname = (sourceGUID == player.guid) and UNIT_YOU_SOURCE or name
+			local sourceIconLocal, sourceIconChat = UnitIcon(sourceRaidFlags, 1)
+			local color = S.GeneralColor[sourceReaction] -- sometimes early on GetPlayerClass returns nil so we do this first
+			if sourcePlayer and (profile.ColorEnemyPlayers or sourceReaction == "Friendly") then
+				color = S.ClassColor[GetPlayerClass[sourceGUID]]
+			end
+			
+			args.src = format("|cff%s"..TEXT_MODE_A_STRING_SOURCE_UNIT.."|r", color, sourceIconLocal, sourceGUID, sourceName, "["..fname.."]")
+			args.srcx = format("%s[%s]", sourceIconChat, name)
+		end
+		
+		if destName then
+			local isSelf = (destGUID == sourceGUID) and not isReverseEvent -- avoid "[Self] died from [Player][Spell]" if a unit died by its own damage
+			local name = isSelf and L.SELF or (destPlayer and profile.TrimRealm) and strmatch(destName, "([^%-]+)%-?.*") or destName
+			local fname = (destGUID == player.guid) and UNIT_YOU_DEST or name
+			local destIconLocal, destIconChat = UnitIcon(destRaidFlags, 2)
+			local color = S.GeneralColor[destReaction] 
+			if destPlayer and (profile.ColorEnemyPlayers or destReaction == "Friendly") then
+				color = S.ClassColor[GetPlayerClass[destGUID]]
+			end
+			
+			args.dest = format("|cff%s"..TEXT_MODE_A_STRING_DEST_UNIT.."|r", color, destIconLocal, destGUID, destName, "["..fname.."]")
+			args.destx = format("%s[%s]", destIconChat, name)
+		end
 		
 		-- timestamp
 		local stamplocal, stampchat = S.GetTimestamp()

@@ -605,6 +605,9 @@ do
 	for i = 1, 4 do -- 5, 9, 13, ...
 		o["newline"..i] = {type = "description", order = 1+i*4, name = ""}
 	end
+	
+	-- (un)register UNIT_HEALTH according to options 
+	o.LocalResurrect.set = function(i, v) profile[i[#i]] = v; KCL:RefreshEvent() end
 end
 
 do
@@ -621,6 +624,8 @@ do
 	for i = 1, 4 do
 		o["newline"..i] = {type = "description", order = 1+i*4, name = ""}
 	end
+	
+	o.ChatResurrect.set = function(i, v) profile[i[#i]] = v; KCL:RefreshEvent() end
 end
 
 	----------------
