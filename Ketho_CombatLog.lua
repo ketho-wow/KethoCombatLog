@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.19 [2014.05.08]			---
+--- Version: 1.21 [2014.11.07]			---
 -------------------------------------------
 --- Curse			http://www.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
@@ -68,11 +68,6 @@ S.SpellSchoolString = {
 	[0x7C] = STRING_SCHOOL_CHROMATIC,
 	[0x7E] = STRING_SCHOOL_MAGIC,
 	[0x7F] = STRING_SCHOOL_CHAOS,
-}
-
-S.NPCID = {
-	[3] = true, -- npc
-	[5] = true, -- vehicle
 }
 
 S.PvE = {
@@ -481,36 +476,30 @@ end
 	--- Timer ---
 	-------------
 
--- behold KethoTimer, its not fueled on animations but it works x)
--- I think vs AceTimer this is better in the case of single OnUpdates
+-- screw AceTimer :D
 local timers = {}
-S.timers = timers
+S.Timer = CreateFrame("Frame")
+S.Timer:Hide()
 
-local function GetTimer() -- allocate timers
-	local i = 1
-	while timers[i] and timers[i].running do
-		i = i + 1
-	end
-	-- if a timer isnt running return that, otherwise return a new one
-	if not timers[i] then
-		timers[i] = CreateFrame("Frame")
-	end
-	return timers[i]
+function S.Timer:New(func, delay)
+	timers[func] = delay -- add timer
+	self:Show()
 end
 
-function S.Timer(func, delay)
-	local t = GetTimer()
-	t.running = true
-	local sum = 0
-	t:SetScript("OnUpdate", function(self, e)
-		sum = sum + e
-		if sum > delay then
-			self:SetScript("OnUpdate", nil)
-			self.running = false
+S.Timer:SetScript("OnUpdate", function(self, elapsed)
+	local stop = true
+	for func, delay in pairs(timers) do
+		timers[func] = delay - elapsed
+		stop = false
+		if timers[func] < 0 then
+			timers[func] = nil -- remove timer
 			func()
 		end
-	end)
-end
+	end
+	if stop then -- all timers finished
+		self:Hide()
+	end
+end)
 
 	-------------
 	--- Stuff ---
@@ -551,4 +540,4 @@ end
 
 S.player.color = GetClassColor(S.player.class)
 -- guid not readily available at first startup
-S.Timer(function() S.player.guid = UnitGUID("player") end, 0)
+S.Timer:New(function() S.player.guid = UnitGUID("player") end, 0)
