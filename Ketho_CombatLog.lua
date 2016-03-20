@@ -2,9 +2,9 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.21 [2014.11.07]			---
+--- Version: 1.22 [2016.03.20]			---
 -------------------------------------------
---- Curse			http://www.curse.com/addons/wow/ketho-combatlog
+--- Curse			http://mods.curse.com/addons/wow/ketho-combatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
 
 -- This is my first addon, and was my introduction to programming/scripting
@@ -169,8 +169,7 @@ S.Event = {
 	[2] = "CrowdControl",
 	[4] = "Break",
 	[6] = "Death",
-	[8] = "Save",
-	[10] = "Resurrect",
+	[8] = "Resurrect",
 }
 
 S.EventMsg = { -- options order
@@ -190,7 +189,6 @@ S.EventMsg = { -- options order
 	"Death_Melee",
 	"Death_Environmental",
 	"Death_Instakill",
-	"Save",
 	"Resurrect",
 	"Soulstone",
 	"Reincarnation",
@@ -213,7 +211,6 @@ S.EventString = {
 	Death_Melee = {TUTORIAL_TITLE25.." ("..ACTION_SWING..")", "Spell_Holy_FistOfJustice"},
 	Death_Environmental = {TUTORIAL_TITLE25.." ("..ENVIRONMENTAL_DAMAGE..")", "Spell_Shaman_LavaFlow"},
 	Death_Instakill = {TUTORIAL_TITLE25.." (Instakill)", "INV_Misc_Bone_HumanSkull_01"},
-	Save = {L.EVENT_SAVE, "Spell_Holy_GuardianSpirit"},
 	Resurrect = {GetSpellInfo(2006), "Spell_Holy_Resurrection"},
 	Soulstone = {GetSpellInfo(20707), "Spell_Shadow_SoulGem"},
 	Reincarnation = {GetSpellInfo(20608), "spell_shaman_improvedreincarnation"},

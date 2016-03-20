@@ -1,5 +1,5 @@
-## Interface: 60000
-## Version: 1.21
+## Interface: 60200
+## Version: 1.22
 ## Title: Ketho CombatLog
 ## Notes: Ketho's Combat Log
 ## Author: Ketho @ EU-Boulderfist

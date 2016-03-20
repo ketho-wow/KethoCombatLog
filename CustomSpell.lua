@@ -207,11 +207,6 @@ S.CrowdControl = {
 	[51514] = true, -- [Hex]
 }
 
-S.Save = {
-	[48153] = true, -- Priest: [Guardian Spirit]
-	[66235] = true, -- Paladin: [Ardent Defender]
-}
-
 S.Blacklist = {
 	[48743] = true, -- SPELL_INSTAKILL, Death Knight: [Death Pact] 
 	[49560] = true, -- SPELL_MISSED, Death Knight: [Death Grip] 
@@ -242,4 +237,7 @@ S.TrainingDummy = {
 	[46647] = true, -- [Training Dummy] (Level 85)
 	[67127] = true, -- [Training Dummy] (Level 90)
 	[31146] = true, -- [Raider's Training Dummy]
+	-- wod
+	[87318] = true, -- "Dungeoneer's Training Dummy" (Damage)
+	[88314] = true, -- "Dungeoneer's Training Dummy" (Tanking)
 }

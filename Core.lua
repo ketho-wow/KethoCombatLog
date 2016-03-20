@@ -757,11 +757,6 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		for k in pairs(selfres) do
 			selfres[k][destGUID] = nil
 		end		
-		
-	elseif subevent == "SPELL_HEAL" then
-		if S.Save[spellID] and IsOption("Save") then
-			SetMessage("Save")
-		end
 	
 	elseif subevent == "SPELL_RESURRECT_SELF" then
 		SetMessage(S.SelfResRemap[spellID])
@@ -891,6 +886,7 @@ function KCL:ShowDeath(guid, timestamp)
 	if class == "HUNTER" and not guid == player.guid then -- UNIT_DIED is (98% of the time) genuine if the player is a hunter himself and died
 		-- dem pussy huntards feigning death; demand them to die from overkill, or not at all!
 		-- UnitIsFeignDeath (deprecated) and UnitBuff (5384 spellname) and UNIT_SPELLCAST_SUCCEEDED only partially help if they only work for unit ids
+		-- 6.2: they seem to get false positive overkill dmg now too. not sure on any workarounds now
 		cleu = death.overkill[guid]
 	elseif class == "DEATHKNIGHT" or class == "MAGE" then
 		death.whosyourdaddy[guid] = death.cheater[guid] and true
