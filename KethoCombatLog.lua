@@ -2,9 +2,9 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 1.22 [2016.03.20]			---
+--- Version: 2.00 [2016.07.18]			---
 -------------------------------------------
---- Curse			http://mods.curse.com/addons/wow/ketho-combatlog
+--- Curse			http://mods.curse.com/addons/wow/kethocombatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
 
 -- This is my first addon, and was my introduction to programming/scripting
@@ -311,20 +311,22 @@ S.Class = { -- options order
 	[6] = "MONK",
 	[8] = "SHAMAN",
 	[10] = "PRIEST",
+	[12] = "DEMONHUNTER",
 }
 
 S.ClassCoords = {
 	WARRIOR = "256:256:4:60:4:60",
-	PALADIN = "256:256:4:60:132:188",
-	HUNTER = "256:256:4:60:68:124",
-	ROGUE = "256:256:131:187:4:60",
-	PRIEST = "256:256:130:186:68:124",
-	DEATHKNIGHT = "256:256:68:124:133:189",
-	SHAMAN = "256:256:68:124:68:124",
 	MAGE = "256:256:68:124:4:60",
-	WARLOCK = "256:256:194:250:68:124",
-	MONK = "256:256:130:186:132:188",
+	ROGUE = "256:256:131:187:4:60",
 	DRUID = "256:256:194:250:4:60",
+	HUNTER = "256:256:4:60:68:124",
+	SHAMAN = "256:256:68:124:68:124",
+	PRIEST = "256:256:130:186:68:124",
+	WARLOCK = "256:256:194:250:68:124",
+	PALADIN = "256:256:4:60:132:188",
+	DEATHKNIGHT = "256:256:68:124:133:189",
+	MONK = "256:256:130:186:132:188",
+	DEMONHUNTER = "256:256:194:250:132:188",
 }
 
 	--------------

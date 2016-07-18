@@ -116,9 +116,8 @@ function KCL:OnInitialize()
 	self.db.global.build = S.BUILD
 	
 	-- parent options table
-	local NAME2 = "Ketho CombatLog"
 	ACR:RegisterOptionsTable("KethoCombatLog_Parent", options)
-	ACD:AddToBlizOptions("KethoCombatLog_Parent", NAME2)
+	ACD:AddToBlizOptions("KethoCombatLog_Parent", NAME)
 	
 	-- profiles
 	options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
@@ -129,7 +128,7 @@ function KCL:OnInitialize()
 	
 	for _, v in ipairs(appKey) do
 		ACR:RegisterOptionsTable(v, appValue[v])
-		ACD:AddToBlizOptions(v, appValue[v].name, NAME2)
+		ACD:AddToBlizOptions(v, appValue[v].name, NAME)
 	end
 	
 	ACD:SetDefaultSize("KethoCombatLog_Parent", 700, 600)
@@ -148,14 +147,6 @@ function KCL:OnEnable()
 	-- controls chatType
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")
 	self:GROUP_ROSTER_UPDATE()
-	
-	if not profile.BlizzardCombatLog then
-		if COMBATLOG then
-			COMBATLOG:UnregisterEvent("COMBAT_LOG_EVENT")
-		else
-			self:RegisterEvent("ADDON_LOADED") -- Check for Blizzard CombatLog
-		end
-	end
 	
 	-- support [Class Colors] by Phanx
 	if CUSTOM_CLASS_COLORS then
@@ -197,7 +188,7 @@ function KCL:RefreshEvent()
 	-- for efficiency, RegisterUnitEvent came to mind, but it doesnt fit in with Ace3
 	-- it would also only take unit ids, and for some reason, not names
 	-- unit ids are kinda hard to get from CLEU and they can change
-	local isHealth = (profile.LocalResurrect or profile.ChatResurrect) and (profile.Soulstone or profile.Reincarnation)
+	local isHealth = (profile.LocalResurrect or profile.ChatResurrect)
 	self[isHealth and "RegisterEvent" or "UnregisterEvent"](self, "UNIT_HEALTH")
 end
 
@@ -354,7 +345,7 @@ local function _GetSpellInfo(spellID, spellName, spellSchool)
 	local schoolNameLocal, schoolNameChat, schoolColor = unpack(GetSpellSchool[spellSchool])
 	local iconSize = profile.IconSize
 	local spellIcon = iconSize>1 and format("|T%s:%s:%s:0:0%s|t", GetSpellIcon[spellID], iconSize, iconSize, S.crop) or ""
-	local spellLinkLocal = format("|cff%s"..TEXT_MODE_A_STRING_SPELL.."|r", schoolColor, spellID, "", "["..spellName.."]")
+	local spellLinkLocal = format("|cff%s"..TEXT_MODE_A_STRING_SPELL.."|r", schoolColor, spellID, 0, "", "["..spellName.."]")
 	return schoolNameLocal, schoolNameChat, spellLinkLocal..spellIcon, _GetSpellLink[spellID]
 end
 
@@ -579,7 +570,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 				selfres.soulstone[destGUID][i] = selfres.soulstone_source[destGUID][i-8] -- copy spell
 			end
 			SwitchSourceDest(selfres.soulstone[destGUID]) -- switch source and dest because if used on self it shows "[Self] used [Player][Soulstone]"
-		elseif GetPlayerClass[destGUID] == "SHAMAN" and profile.Reincarnation then -- possible reincarnation active
+		elseif GetPlayerClass[destGUID] == "SHAMAN" then -- possible reincarnation active
 			selfres.reincarnation[destGUID] = {event, ...}
 			selfres.reincarnation[destGUID][3] = "SPELL_RESURRECT_SELF"
 			for i, v in ipairs(Reincarnation) do
@@ -616,7 +607,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 				SetMessage("Reflect")
 			end
 		else
-			local taunt = S.Taunt[spellID] and IsOption("Taunt")
+			local taunt = S.Taunt[spellID] and IsOption("Taunt") 
 			local int = S.Interrupt[spellID] and IsOption("Interrupt")
 			local cc = S.CrowdControl[spellID] and IsOption("CrowdControl")
 			if (taunt or int or cc) and not S.Blacklist[spellID] then
@@ -668,7 +659,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		if isTaunt and IsOption("Taunt") and destNPC and TankFilter("Taunt", sourceName) then
 			-- guardian is also a npc; hunter pets auto casting taunts on dummies when measuring dps
 			local isGuardian = bit_band(destFlags, COMBATLOG_OBJECT_TYPE_GUARDIAN) > 0
-			local isTrainingDummy = S.TrainingDummy[tonumber(strsub(destGUID, 6, 10), 16)]
+			local isTrainingDummy = S.TrainingDummy[tonumber((select(6,strsplit("-", destGUID))))]
 			if S.PetTaunt[spellID] and (isGuardian or isTrainingDummy) then return end
 			SetMessage("Taunt")
 		
@@ -691,7 +682,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	
 	elseif subevent == "SPELL_AURA_REMOVED" then
 		-- Soulstone
-		if spellID == 20707 and IsOption("Resurrect") and profile.Soulstone then
+		if spellID == 20707 and IsOption("Resurrect") then
 			-- this actually sometimes seems to fire after UNIT_DIED; not sure what to do about it...
 			-- possible soulstone active; store source and use that as a flag
 			selfres.soulstone_source[destGUID] = {sourceGUID, sourceName, sourceFlags, sourceRaidFlags, spellID, spellName, spellSchool}
@@ -856,8 +847,12 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		if profile.ChatWindow > 1 then
 			S.ChatFrame:AddMessage(textLocal, unpack(args.color))
 		end
-		-- LibSink; use local event group
-		self:Pour(profile.sink20OutputSink == "Channel" and textChat or textLocal, unpack(args.color))
+		-- LibSink; use local event group; bypass it if the option for combat text is disabled
+		if profile.sink20OutputSink == "Blizzard" and SHOW_COMBAT_TEXT == "0" then
+			CombatText_AddMessage(textLocal, COMBAT_TEXT_SCROLL_FUNCTION, unpack(args.color))
+		else
+			self:Pour(profile.sink20OutputSink == "Channel" and textChat or textLocal, unpack(args.color))
+		end
 	end
 	
 	-- dont default to "SAY" if chatType is nil

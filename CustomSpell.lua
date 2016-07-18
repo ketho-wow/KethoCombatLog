@@ -37,6 +37,8 @@ S.Spell = {
 		[146933] = "SUMMON", -- Noodle Cart
 		[146934] = "SUMMON", -- Deluxe Noodle Cart
 		[146935] = "SUMMON", -- Pandaren Treasure Noodle Cart
+		
+		[175215] = "CREATE", -- Savage Feast
 	},
 	RepairBot = {
 		[22700] = "SUMMON", -- [Field Repair Bot 74A]
@@ -149,6 +151,7 @@ S.Taunt = {
 	[6795] = true, -- Druid: [Growl]
 	[20736] = true, -- Hunter: [Distracting Shot]
 	[116189] = true, -- Monk: [Provoke]; 115546
+	[185245] = true, -- Demon Hunter: [Torment]
 -- Death Knight
 	[49560] = true, -- [Death Grip]
 	[51399] = true, -- [Death Grip] (melee range)
@@ -166,6 +169,7 @@ S.Interrupt = {
 	--[15487] = true, -- Priest: [Silence]
 	[47528] = true, -- Death Knight: [Mind Freeze]
 	--[47476] = true, -- Death Knight: [Strangulate]
+	[183752] = true, -- Demon Hunter: [Consume Magic]
 	[147362] = true, -- Hunter: [Counter Shot]
 	--[34490] = true, -- Hunter: [Silencing Shot]
 	[57994] = true, -- Shaman: [Wind Shear]
@@ -213,6 +217,7 @@ S.Blacklist = {
 	[81280] = true, -- SPELL_INSTAKILL, Death Knight: Bloodworm: [Blood Burst]
 	[108503] = true, -- SPELL_INSTAKILL, Warlock: [Grimoire of Sacrifice]
 	[123982] = true, -- SPELL_INSTAKILL, Death Knight: [Purgatory]
+	[196278] = true, -- SPELL_INSTAKILL, Warlock: [Implosion]
 }
 
 S.PetTaunt = {

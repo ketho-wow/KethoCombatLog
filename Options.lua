@@ -62,8 +62,6 @@ S.defaults = { -- KethoCombatLog.db.defaults
 		FriendlyDispel = true,
 		HostileDispel = true,
 		Spellsteal = true,
-		Soulstone = true,
-		Reincarnation = true,
 		
 		SpellOutput = 1,
 		SpellFilterSelf = true, -- exclusive filtering
@@ -201,7 +199,7 @@ S.options = {
 						profile.ChatWindow = v
 						if v > 1 then
 							S.ChatFrame = _G["ChatFrame"..v-1]
-							S.ChatFrame:AddMessage("|cffADFF2FKetho CombatLog|r: Chat Frame |cff57A3FF"..(v-1)..".|r |cffADFF2F"..GetChatWindowInfo(v-1).."|r")
+							S.ChatFrame:AddMessage("|cffADFF2F"..NAME.."|r: Chat Frame |cff57A3FF"..(v-1)..".|r |cffADFF2F"..GetChatWindowInfo(v-1).."|r")
 						end
 					end,
 				},
@@ -213,7 +211,7 @@ S.options = {
 							"|cffFF0000<"..ADDON_DISABLED..">|r",
 							"|cff2E9AFE#|r   "..CHAT_MSG_SAY,
 							"|cff2E9AFE#|r   |cffFF4040"..CHAT_MSG_YELL.."|r",
-							"|cff2E9AFE#|r   |cffA8A8FF"..CHAT_MSG_PARTY.."|r / |cffFF7F00"..CHAT_MSG_RAID.."|r",
+							"|cff2E9AFE#|r   |cffA8A8FF"..GROUP.."|r",
 						}
 						for i = 1, 10 do
 							local channelID = select((i*2)-1, GetChannelList())
@@ -307,16 +305,6 @@ S.options = {
 							desc = numberExample.." -> "..AbbreviateLargeNumbers(numberExample),
 							name = L.ABBREVIATE_LARGE_NUMBERS,
 						},
-						header4 = {type = "header", order = 16, name = OTHER},
-						BlizzardCombatLog = {
-							type = "toggle", order = 17, width = "full",
-							desc = BINDING_NAME_TOGGLECOMBATLOG,
-							name = "|cff2E9AFEBlizzard CombatLog|r",
-							set = function(i, v) profile.BlizzardCombatLog = v
-								COMBATLOG[v and "RegisterEvent" or "UnregisterEvent"](COMBATLOG, "COMBAT_LOG_EVENT")
-								print("Blizzard CombatLog: "..(v and "|cffB6CA00"..VIDEO_OPTIONS_ENABLED.."|r" or "|cffFF2424"..VIDEO_OPTIONS_DISABLED.."|r"))
-							end,
-						},
 					},
 				},
 				Filter = {
@@ -382,18 +370,6 @@ S.options = {
 							disabled = function() return IsNotEvent("Dispel") end,
 						},
 						header5 = {type = "header", order = 20, name = "|TInterface\\Icons\\Spell_Holy_Resurrection:14:14:1:0"..S.crop.."|t  "..RESURRECT},
-						Soulstone = {
-							type = "toggle", order = 21, width = "full", descStyle = "",
-							name = " |TInterface\\Icons\\Spell_Shadow_SoulGem:16:16:1:0"..S.crop.."|t  |cff8080FF"..GetSpellInfo(20707).."|r",
-							disabled = function() return IsNotEvent("Resurrect") end,
-							set = function(i, v) profile.Soulstone = v; KCL:RefreshEvent() end,
-						},
-						Reincarnation = {
-							type = "toggle", order = 22, width = "full", descStyle = "",
-							name = " |TINTERFACE\\ICONS\\spell_shaman_improvedreincarnation:16:16:1:0"..S.crop.."|t  |cff4DFF4D"..GetSpellInfo(20608).."|r",
-							disabled = function() return IsNotEvent("Resurrect") end,
-							set = function(i, v) profile.Reincarnation = v; KCL:RefreshEvent() end,
-						},
 						CombatRes = {
 							type = "toggle", order = 23, width = "full", descStyle = "",
 							name = " |TInterface\\CharacterFrame\\UI-StateIcon:24:24:-2:1:32:32:16:32:0:16|t"..COMBAT.." "..RESURRECT.." only",

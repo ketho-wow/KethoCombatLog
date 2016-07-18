@@ -1,9 +1,10 @@
-## Interface: 60200
-## Version: 1.22
-## Title: Ketho CombatLog
+## Interface: 70000
+## Version: 2.00
+## Title: KethoCombatLog
 ## Notes: Ketho's Combat Log
 ## Author: Ketho @ EU-Boulderfist
 ## SavedVariables: KethoCombatLogDB
+## Dependencies: Blizzard_CombatText
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 ## X-Category: Combat
@@ -26,7 +27,7 @@ Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 CustomSpell.lua
 Locales.lua
 
-Ketho_CombatLog.lua
+KethoCombatLog.lua
 Options.lua
 Core.lua
 Broker.lua

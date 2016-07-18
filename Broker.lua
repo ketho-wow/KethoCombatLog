@@ -10,7 +10,7 @@ local L = S.L
 
 local dataobject = {
 	type = "launcher",
-	text = "Ketho CombatLog",
+	text = NAME,
 	icon = "Interface\\Icons\\INV_Sword_01",
 	OnClick = function(clickedframe, button)
 		if IsModifierKeyDown() then
