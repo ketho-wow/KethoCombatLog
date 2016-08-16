@@ -2,7 +2,7 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 2.00 [2016.07.18]			---
+--- Version: 2.0.1 [2016.08.16]			---
 -------------------------------------------
 --- Curse			http://mods.curse.com/addons/wow/kethocombatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html

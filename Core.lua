@@ -597,7 +597,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		if SuffixParam1 == "ABSORB" then
 			if not IsOption("Death") then return end
 			if isDeath then
-				args.amount = SuffixParam4 -- changed from param 3 to 4 in WoD
+				args.amount = SuffixParam3
 				SetMessage("Death")
 			else
 				death.damage[destGUID] = RecycleTable(death.damage[destGUID], event, ...)
