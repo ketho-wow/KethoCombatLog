@@ -930,6 +930,8 @@ end
 ]]
 
 function KCL:UNIT_HEALTH(event, unit)
+	if not unit then return end -- 7.1 bug
+	
 	local guid = UnitGUID(unit) -- firstly filter out most of the stuff
 	if (not selfres.soulstone[guid] and not selfres.reincarnation[guid]) or not UnitIsVisible(unit) then return end
 	

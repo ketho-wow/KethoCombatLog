@@ -140,7 +140,7 @@ end
 S.options = {
 	type = "group",
 	childGroups = "tab",
-	name = format("%s |cffADFF2Fv%s|r", "Ketho |cffFFFFFFCombatLog|r", S.VERSION),
+	name = format("%s |cffADFF2F%s|r", "Ketho |cffFFFFFFCombatLog|r", S.VERSION),
 	args = {
 		Main = {
 			type = "group", order = 1,
