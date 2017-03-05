@@ -671,8 +671,9 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			S.Timer:New(function() self:ShowDeath(destGUID, timestamp) return end, 0)
 		-- Death Knight 116888 [Shroud of Purgatory], Mage 87023 [Cauterized] fix
 		elseif (spellID == 116888 or spellID == 87023) and IsOption("Death") then
-			if death.overkill[destGUID] or death.damage[destGUID] then -- sanity check so CopyTable doesnt choke on empty tables
-				S.Timer:New(function() death.cheater[destGUID] = CopyTable(death.overkill[destGUID] or death.damage[destGUID]) end, 0)
+			local dkmagedeath = death.overkill[destGUID] or death.damage[destGUID]
+			if dkmagedeath then -- sanity check so CopyTable doesnt choke on empty tables
+				S.Timer:New(function() if dkmagedeath then death.cheater[destGUID] = CopyTable(dkmagedeath) end end, 0)
 			end
 		elseif S.CrowdControl[spellID] and IsOption("CrowdControl") then
 			-- 605 Priest [Dominate Mind] fix; applied to both the dest unit and source unit

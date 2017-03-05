@@ -47,7 +47,9 @@ S.Spell = {
 		[54711] = "SUMMON", -- [Scrapbot]
 		[67826] = "SUMMON", -- [Jeeves]
 		[126459] = "SUMMON", -- [Blingtron 4000]
+		[161414] = "SUMMON", -- [Blingtron 5000]
 		[126462] = "CAST_SUCCESS", -- [Thermal Anvil] CREATE fires twice (Forge and Anvil)
+		[200061] = "CAST_SUCCESS", -- [Summon Reaves]
 	},
 	Bloodlust = {
 		[2825] = "CAST_SUCCESS", -- Bloodlust
@@ -75,7 +77,8 @@ S.Spell = {
 		[88346] = "CREATE", -- "Portal: Tol Barad" (Horde)
 		[132626] = "CREATE", -- "Portal: Vale of Eternal Blossoms" (Horde)
 		
-		[53142] = "CREATE", -- "Portal: Dalaran"
+		[53142] = "CREATE", -- "Portal: Dalaran - Northrend"
+		[224871] = "CREATE", -- "Portal: Dalaran - Broken Isles"
 		[120146] = "CREATE", -- "Ancient Portal: Dalaran"
 		[67833] = "SUMMON", -- "Wormhole" [Wormhole Generator: Northrend]
 	},
@@ -143,6 +146,8 @@ S.Spell = {
 		[6197] = "CAST_SUCCESS", -- Eagle Eye (Beast Mastery)
 		[111759] = "AURA_APPLIED", -- Levitate
 	},
+	Misdirection = {[34477] = "AURA_APPLIED"}, -- 35079 for self
+	TricksTrade = {[57934] = "CAST_SUCCESS"}, -- for AURA_APPLIED its also cast on self
 }
 
 

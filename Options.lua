@@ -395,7 +395,7 @@ S.options = {
 							name = " |TInterface\\Icons\\Achievement_Boss_Mimiron_01:16:16:1:0"..S.crop.."|t  Repair Bot",
 						},
 						Bloodlust = {
-							type = "toggle", order = 6, descStyle = "",
+							type = "toggle", order = 6, desc = UnitFactionGroup("player") == "Horde" and GetSpellDescription(2825) or GetSpellDescription(32182),
 							name = format(" |T%s:16:16:1:0%s|t  |cff71D5FF%s|r", Bloodlust[3], S.crop, Bloodlust[1]),
 						},
 						Portal = {
@@ -409,6 +409,14 @@ S.options = {
 						Fun = {
 							type = "toggle", order = 7, descStyle = "",
 							name = " |TInterface\\Icons\\INV_Misc_Bomb_04:16:16:1:0"..S.crop.."|t  |cffF6ADC6Fun|r",
+						},
+						Misdirection = {
+							type = "toggle", order = 8, desc = GetSpellDescription(34477),
+							name = " |TInterface\\Icons\\ability_hunter_misdirection:16:16:1:0"..S.crop.."|t  |c"..RAID_CLASS_COLORS.HUNTER.colorStr..GetSpellInfo(34477).."|r",
+						},
+						TricksTrade = {
+							type = "toggle", order = 9, desc = GetSpellDescription(57934),
+							name = " |TInterface\\Icons\\ability_rogue_tricksofthetrade:16:16:1:0"..S.crop.."|t  |c"..RAID_CLASS_COLORS.ROGUE.colorStr..GetSpellInfo(57934).."|r",
 						},
 						header1 = {type = "header", order = 20, name = ""},
 						SpellOutput = {

@@ -293,7 +293,7 @@ S.SpellSummon = {
 }
 
 -- for spell data frame order
-S.SpellGroupOrder = {"Feast", "RepairBot", "Bloodlust", "Portal", "Holiday", "Fun"}
+S.SpellGroupOrder = {"Feast", "RepairBot", "Bloodlust", "Portal", "Holiday", "Fun", "Misdirection", "TricksTrade"}
 
 	-------------
 	--- Class ---
