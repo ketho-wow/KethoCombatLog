@@ -540,3 +540,5 @@ end
 S.player.color = GetClassColor(S.player.class)
 -- guid not readily available at first startup
 S.Timer:New(function() S.player.guid = UnitGUID("player") end, 0)
+
+-- hello
