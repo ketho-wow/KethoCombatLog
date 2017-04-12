@@ -330,7 +330,8 @@ local GetSpellSchool = setmetatable({}, {__index = function(t, k)
 end})
 
 local GetSpellIcon = setmetatable({}, {__index = function(t, k)
-	local v = select(3, GetSpellInfo(k))
+	-- since 7.2 some spells dont return an icon
+	local v = select(3, GetSpellInfo(k)) or 134400 -- "INV_MISC_QUESTIONMARK"
 	rawset(t, k, v)
 	return v
 end})
