@@ -516,9 +516,15 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	-------------
 		
 		args.school, args.schoolx, args.spell, args.spellx = _GetSpellInfo(spellID, spellName, spellSchool)
+		args.spellname = format("[%s]", spellName)
+		
+		if profile.SpellNotClickable then -- by user request
+			args.spell, args.spellx = format("[%s]", spellName), format("[%s]", spellName)
+		end
 		
 		if S.ExtraSpellEvent[subevent] then
 			args.xschool, args.xschoolx, args.xspell, args.xspellx = _GetSpellInfo(SuffixParam1, SuffixParam2, SuffixParam3)
+			args.xspellname = format("[%s]", SuffixParam2)
 		end
 	end
 	

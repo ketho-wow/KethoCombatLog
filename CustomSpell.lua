@@ -57,6 +57,7 @@ S.Spell = {
 		[80353] = "CAST_SUCCESS", -- Time Warp
 		[90355] = "CAST_SUCCESS", -- Core Hound: Ancient Hysteria
 		[160452] = "CAST_SUCCESS", -- Nether Ray: Netherwinds
+		[178207] = "CAST_SUCCESS", -- Drums of Fury
 	},
 	Portal = {
 		[10059] = "CREATE", -- "Portal: Stormwind"
