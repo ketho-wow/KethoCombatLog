@@ -112,9 +112,6 @@ function KCL:OnInitialize()
 	self.db.RegisterCallback(self, "OnProfileReset", "RefreshDB")
 	self:RefreshDB()
 	
-	self.db.global.version = S.VERSION
-	self.db.global.build = S.BUILD
-	
 	-- parent options table
 	ACR:RegisterOptionsTable("KethoCombatLog_Parent", options)
 	ACD:AddToBlizOptions("KethoCombatLog_Parent", NAME)
@@ -459,8 +456,9 @@ end
 	--------------
 
 function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
-	
-	local timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = ...
+	-- 8.0.1: this recursion is totally fucked up
+	local CLEU = ... and {...} or {CombatLogGetCurrentEventInfo()}
+	local timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = unpack(CLEU)
 	
 	wipe(args)
 	
@@ -470,7 +468,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local destPlayer = (destType == "Player")
 	
 	-- exceptions to the filter
-	local petspell, _, _, miss = select(12, ...)
+	local petspell, _, _, miss = select(12, unpack(CLEU))
 	local isMissEvent = (S.MissEvent[subevent] and S.MissType[miss])
 	local isReverseEvent = S.DamageEvent[subevent] or isMissEvent or subevent == "UNIT_DIED"
 	-- pets are not players but we still want to see when they do anything important
@@ -502,13 +500,13 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	
 	local prefix = strsub(subevent, 1, 5)
 	if prefix == "SWING" then
-		SuffixParam1, SuffixParam2, SuffixParam3, SuffixParam4, SuffixParam5, SuffixParam6, SuffixParam7, SuffixParam8, SuffixParam9 = select(12, ...)
+		SuffixParam1, SuffixParam2, SuffixParam3, SuffixParam4, SuffixParam5, SuffixParam6, SuffixParam7, SuffixParam8, SuffixParam9 = select(12, unpack(CLEU))
 		args.amount = SuffixParam1
 	elseif S.SpellPrefix[prefix] then
 		-- not sure what happened here in WoD; two same dest units apparently
 		if subevent == "SPELL_ABSORBED" then return end
 		
-		spellID, spellName, spellSchool, SuffixParam1, SuffixParam2, SuffixParam3, SuffixParam4, SuffixParam5, SuffixParam6, SuffixParam7, SuffixParam8, SuffixParam9 = select(12, ...)
+		spellID, spellName, spellSchool, SuffixParam1, SuffixParam2, SuffixParam3, SuffixParam4, SuffixParam5, SuffixParam6, SuffixParam7, SuffixParam8, SuffixParam9 = select(12, unpack(CLEU))
 		args.amount = SuffixParam1
 		
 	-------------
@@ -540,7 +538,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		
 		if isDeath then
 			if subevent == "ENVIRONMENTAL_DAMAGE" then
-				local environmentalType, amount, _, _, _, _, absorb = select(12, ...)
+				local environmentalType, amount, _, _, _, _, absorb = select(12, unpack(CLEU))
 				if not destName then return end -- sometimes destName is nil
 				args.amount = (amount == 0) and absorb or amount -- fix holy priest fatal absorb
 				args.type = S.EnvironmentalDamageType[environmentalType] or environmentalType
@@ -552,9 +550,9 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			-- ignore damage on Death Knight [Purgatory]; Amount is greater than Overkill by exactly 1
 			if SuffixParam1 and SuffixParam2 and SuffixParam1-SuffixParam2 == 1 then return end
 			-- store last overkill/normal damage event
-			death.damage[destGUID] = RecycleTable(death.damage[destGUID], event, ...)
+			death.damage[destGUID] = RecycleTable(death.damage[destGUID], event, unpack(CLEU))
 			if SuffixParam2 and SuffixParam2 > 0 then
-				death.overkill[destGUID] = RecycleTable(death.overkill[destGUID], event, ...)
+				death.overkill[destGUID] = RecycleTable(death.overkill[destGUID], event, unpack(CLEU))
 			end
 		end
 	
@@ -568,7 +566,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		-- store cleu event for if the unit possibly resurrects itself; very hacky
 		-- soulstone has precedence over reincarnation when cast on a shaman
 		if selfres.soulstone_source[destGUID] then -- confirm unit death with soulstone active
-			selfres.soulstone[destGUID] = {event, ...}
+			selfres.soulstone[destGUID] = {event, unpack(CLEU)}
 			selfres.soulstone[destGUID][3] = "SPELL_RESURRECT_SELF"
 			for i = 5, 8 do
 				selfres.soulstone[destGUID][i] = selfres.soulstone_source[destGUID][i-4] -- copy source
@@ -578,7 +576,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			end
 			SwitchSourceDest(selfres.soulstone[destGUID]) -- switch source and dest because if used on self it shows "[Self] used [Player][Soulstone]"
 		elseif GetPlayerClass[destGUID] == "SHAMAN" then -- possible reincarnation active
-			selfres.reincarnation[destGUID] = {event, ...}
+			selfres.reincarnation[destGUID] = {event, unpack(CLEU)}
 			selfres.reincarnation[destGUID][3] = "SPELL_RESURRECT_SELF"
 			for i, v in ipairs(Reincarnation) do
 				selfres.reincarnation[destGUID][i+12] = v -- copy spell
@@ -607,7 +605,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 				args.amount = SuffixParam3
 				SetMessage("Death")
 			else
-				death.damage[destGUID] = RecycleTable(death.damage[destGUID], event, ...)
+				death.damage[destGUID] = RecycleTable(death.damage[destGUID], event, unpack(CLEU))
 			end
 		elseif SuffixParam1 == "REFLECT" then
 			if IsOption("Reflect") then
@@ -779,16 +777,12 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		args.chat = bit_band(profile.SpellOutput, 0x2) > 0
 	end
 	
-	---------------
-	--- Message ---
-	---------------
-	
-	-- check if there is any message
-	if not args.msg then return end
-	
 	------------
 	--- Unit ---
 	------------
+	
+	-- check if there is any message
+	if not args.msg then return end
 	
 	if sourceName then -- if no unit, then guid is an empty string and name is nil
 		-- trim out (CRZ) realm name; only do this for players

@@ -140,7 +140,7 @@ end
 S.options = {
 	type = "group",
 	childGroups = "tab",
-	name = format("%s |cffADFF2F%s|r", "Ketho |cffFFFFFFCombatLog|r", S.VERSION),
+	name = format("%s |cffADFF2F%s|r", "Ketho |cffFFFFFFCombatLog|r", GetAddOnMetadata(NAME, "Version")),
 	args = {
 		Main = {
 			type = "group", order = 1,

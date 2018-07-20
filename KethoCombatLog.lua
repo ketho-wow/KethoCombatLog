@@ -2,16 +2,13 @@
 --- Author: Ketho (EU-Boulderfist)		---
 --- License: Public Domain				---
 --- Created: 2009.09.01					---
---- Version: 2.0.1 [2016.08.16]			---
 -------------------------------------------
---- Curse			http://mods.curse.com/addons/wow/kethocombatlog
+--- Curse			https://www.curseforge.com/wow/addons/kethocombatlog
 --- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
 
--- This is my first addon, and was my introduction to programming/scripting
+-- This is my first addon and was my introduction to programming/scripting
 
 local NAME, S = ...
-S.VERSION = GetAddOnMetadata(NAME, "Version")
-S.BUILD = "Release"
 
 KethoCombatLog = LibStub("AceAddon-3.0"):NewAddon("KethoCombatLog", "AceEvent-3.0", "AceConsole-3.0", "LibSink-2.0")
 local KCL = KethoCombatLog
@@ -540,5 +537,3 @@ end
 S.player.color = GetClassColor(S.player.class)
 -- guid not readily available at first startup
 S.Timer:New(function() S.player.guid = UnitGUID("player") end, 0)
-
--- hello
