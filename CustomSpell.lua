@@ -165,6 +165,10 @@ S.Taunt = {
 -- Paladin
 	[31790] = true, -- [Righteous Defense]
 	[62124] = true, -- [Hand of Reckoning]
+-- Pet
+	[2649] = true, -- Hunter: Pet: [Growl]
+	[17735] = true, -- Warlock: Voidwalker: [Suffering]
+	[36213] = true, -- Shaman: Greater Earth Elemental: [Angered Earth]
 }
 
 -- actually used only for jukes
@@ -226,21 +230,7 @@ S.Blacklist = {
 	[196278] = true, -- SPELL_INSTAKILL, Warlock: [Implosion]
 }
 
-S.PetTaunt = {
-	[2649] = true, -- Hunter: Pet: [Growl]
-	[17735] = true, -- Warlock: Voidwalker: [Suffering]
-	[36213] = true, -- Shaman: Greater Earth Elemental: [Angered Earth]
-}
-
--- just for getting pet interrupts through the players/monsters filter
-S.PetInterrupt = {
-	[50318] = true, -- Hunter: Moth: [Serenity Dust]
-	[50479] = true, -- Hunter: Nether Ray: [Nether Shock]
-	[26090] = true, -- Hunter: Gorilla: [Pummel]
-	[19647] = true, -- Warlock: Felhunter: [Spell Lock]
-}
-
- -- ignore pet taunts on dummies
+-- ignore dummies
 S.TrainingDummy = {
 	[32666] = true, -- [Training Dummy] (Level 60)
 	[32667] = true, -- [Training Dummy] (Level 70)
@@ -248,6 +238,7 @@ S.TrainingDummy = {
 	[46647] = true, -- [Training Dummy] (Level 85)
 	[67127] = true, -- [Training Dummy] (Level 90)
 	[31146] = true, -- [Raider's Training Dummy]
+	[114832] = true, -- PvP Training Dummy
 	-- wod
 	[87318] = true, -- "Dungeoneer's Training Dummy" (Damage)
 	[88314] = true, -- "Dungeoneer's Training Dummy" (Tanking)

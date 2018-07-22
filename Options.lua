@@ -54,9 +54,7 @@ S.defaults = { -- KethoCombatLog.db.defaults
 		AbbreviateNumbers = true,
 		BlizzardCombatLog = true,
 		
-		FilterSelf = true, -- inclusive filtering
-		FilterOther = true,
-		FilterPlayers = true,
+		FilterPlayers = true, -- inclusive filtering
 		TankTaunt = true,
 		PetTaunt = true,
 		FriendlyDispel = true,
@@ -317,68 +315,39 @@ S.options = {
 					type = "group", order = 2,
 					name = "|TInterface\\Icons\\Spell_Holy_Silence:14:14:1:0"..S.crop.."|t  |cffFFFFFF"..FILTERS.."|r",
 					args = {
-						header1 = {type = "header", order = 1, name = COMBAT_LOG_MENU_BOTH},
-						FilterSelf = {
-							type = "toggle", order = 2, width = "full", descStyle = "",
-							name = "|cff"..S.player.color..YOU.."|r",
-							set = function(i, v) profile.FilterSelf = v
-								-- toggle between filters
-								if not v then profile.FilterOther = true end
-							end,
-						},
-						FilterOther = {
-							type = "toggle", order = 3, width = "full", descStyle = "",
-							name = OTHER,
-							set = function(i, v) profile.FilterOther = v
-								if not v then profile.FilterSelf = true end
-							end,
-						},
-						header2 = {type = "header", order = 4, name = BY_SOURCE.." "..TYPE},
+						header1 = {type = "header", order = 1, name = BY_SOURCE.." "..TYPE},
 						FilterPlayers = {
-							type = "toggle", order = 5, width = "full", descStyle = "",
+							type = "toggle", order = 2, width = "full", descStyle = "",
 							name = "|cff57A3FF"..TUTORIAL_TITLE19.."|r",
-							set = function(i, v) profile.FilterPlayers = v
-								if not v then profile.FilterMonsters = true end
-							end,
+						},
+						FilterPets = {
+							type = "toggle", order = 3, width = "full", descStyle = "",
+							name = "|cffFFFF00"..PETS.."|r",
 						},
 						FilterMonsters = {
-							type = "toggle", order = 6, width = "full", descStyle = "",
+							type = "toggle", order = 4, width = "full", descStyle = "",
 							name = "|cff3FBF3FNPCs|r",
-							set = function(i, v) profile.FilterMonsters = v
-								if not v then profile.FilterPlayers = true end
-							end,
 						},
-						header3 = {type = "header", order = 7, name = " |TInterface\\Icons\\Spell_Nature_Reincarnation:16:16:1:0"..S.crop.."|t "..S.EventString.Taunt[1]},
-						TankTaunt = {
-							type = "toggle", order = 8, width = "full", descStyle = "",
-							name = function() return " |TInterface\\LFGFRAME\\UI-LFG-ICON-ROLES:20:20:-2:0:256:256:1:65:68:132|t |cff6FAFE6"..TANK.."|r "..S.EventString.Taunt[1] end,
-							disabled = function() return IsNotEvent("Taunt") end,
-						},
-						PetTaunt = {
-							type = "toggle", order = 9, width = "full", descStyle = "",
-							name = function() return " |TInterface\\Icons\\Ability_Mount_JungleTiger:16:16:1:0"..S.crop.."|t  |cffFFFF00"..PET.."|r "..S.EventString.Taunt[1] end,
-							disabled = function() return IsNotEvent("Taunt") end,
-						},
-						header4 = {type = "header", order = 10, name = "|TInterface\\Icons\\Spell_Holy_DispelMagic:16:16:1:0"..S.crop.."|t  "..DISPELS},
+						header2 = {type = "header", order = 5, name = "|TInterface\\Icons\\Spell_Holy_DispelMagic:16:16:1:0"..S.crop.."|t  "..DISPELS},
 						FriendlyDispel = {
-							type = "toggle", order = 11, width = "full", descStyle = "",
+							type = "toggle", order = 6, width = "full", descStyle = "",
 							name = " |TInterface\\Icons\\Spell_Holy_Purify:16:16:1:0"..S.crop.."|t  "..FRIENDLY.." (|cff71D5FF"..ACTION_SPELL_DISPEL_DEBUFF.."|r)",
 							disabled = function() return IsNotEvent("Dispel") end,
 						},
 						HostileDispel = {
-							type = "toggle", order = 12, width = "full", descStyle = "",
+							type = "toggle", order = 7, width = "full", descStyle = "",
 							name = " |TInterface\\Icons\\Spell_Nature_Purge:16:16:1:0"..S.crop.."|t  "..HOSTILE.." (|cff71D5FF"..ACTION_SPELL_DISPEL_BUFF.."|r)",
 							disabled = function() return IsNotEvent("Dispel") end,
 						},
 						Spellsteal = {
-							type = "toggle", order = 13, width = "full", descStyle = "",
+							type = "toggle", order = 8, width = "full", descStyle = "",
 							name = " |TInterface\\Icons\\Spell_Arcane_Arcane02:16:16:1:0"..S.crop.."|t  "..S.EventString.Spellsteal[1],
 							disabled = function() return IsNotEvent("Dispel") end,
 						},
-						header5 = {type = "header", order = 20, name = "|TInterface\\Icons\\Spell_Holy_Resurrection:14:14:1:0"..S.crop.."|t  "..RESURRECT},
+						header3 = {type = "header", order = 9, name = "|TInterface\\Icons\\Spell_Holy_Resurrection:14:14:1:0"..S.crop.."|t  "..RESURRECT},
 						CombatRes = {
-							type = "toggle", order = 23, width = "full", descStyle = "",
-							name = " |TInterface\\CharacterFrame\\UI-StateIcon:24:24:-2:1:32:32:16:32:0:16|t"..COMBAT.." "..RESURRECT.." only",
+							type = "toggle", order = 10, width = "full", descStyle = "",
+							name = " |TInterface\\Icons\\spell_nature_reincarnation:16:16:1:0"..S.crop.."|t  "..COMBAT.." "..FILTER,
 							disabled = function() return IsNotEvent("Resurrect") end,
 						},
 					},
@@ -388,10 +357,6 @@ S.options = {
 					name = "|TInterface\\EncounterJournal\\UI-EJ-Icons:14:14:1:0:64:256:58:62:32:96|t  |cffFFFFFF"..STAT_CATEGORY_SPELL.."|r",
 					set = function(i, v) profile[i[#i]] = v; KCL:RefreshSpell(i[#i]) end,
 					args = {
-						note = {
-							type = "description", order = 1, fontSize = "medium",
-							name = "For more advanced use/customization, I suggest |cff57A3FFPower Auras|r / |cff57A3FFWeakAuras|r / |cff57A3FFRaeli's Spell Announcer|r, or editing the source code\n"
-						},
 						Feast = {
 							type = "toggle", order = 2, descStyle = "",
 							name = " |TInterface\\Icons\\inv_misc_food_cooked_pabanquet_general:16:16:1:0"..S.crop.."|t  Feast",

@@ -380,10 +380,6 @@ local function IsOption(event)
 	return profile["Local"..event] or profile["Chat"..event]
 end
 
-local function TankFilter(event, unit)
-	return profile["Tank"..event] or not (UnitGroupRolesAssigned(unit) == "TANK")
-end
-
 -- it might be the player is in a bg/arena vs the enemy faction
 -- then check if the player is in combat instead; its really not foolproof though
 local function UnitInCombat(name)
@@ -460,35 +456,34 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local CLEU = ... and {...} or {CombatLogGetCurrentEventInfo()}
 	local timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = unpack(CLEU)
 	
-	wipe(args)
+	wipe(args) -- wipe substitution args
 	
 	local sourceType = strsplit("-", sourceGUID)
 	local destType = strsplit("-", destGUID)
+	
 	local sourcePlayer = (sourceType == "Player")
 	local destPlayer = (destType == "Player")
-	
-	-- exceptions to the filter
-	local petspell, _, _, miss = select(12, unpack(CLEU))
-	local isMissEvent = (S.MissEvent[subevent] and S.MissType[miss])
-	local isReverseEvent = S.DamageEvent[subevent] or isMissEvent or subevent == "UNIT_DIED"
-	-- pets are not players but we still want to see when they do anything important
-	local isPet = S.PetTaunt[petspell] or S.PetInterrupt[petspell]
 	
 	--------------
 	--- Filter ---
 	--------------
 	
-	if sourceGUID == player.guid or destGUID == player.guid then
-		if not profile.FilterSelf then return end
-	else
-		if not profile.FilterOther then return end
-	end
+	local isMissEvent = (S.MissEvent[subevent] and S.MissType[select(15, unpack(CLEU))])
+ 	local isReverseEvent = S.DamageEvent[subevent] or isMissEvent or subevent == "UNIT_DIED"
 	
-	-- the other way round for death/reflect events
-	if (not isReverseEvent and (sourcePlayer or isPet)) or (isReverseEvent and destPlayer) then
+	-- players, pets, npcs
+	if sourcePlayer or (isReverseEvent and destPlayer) then
 		if not profile.FilterPlayers then return end
+	elseif sourceType == "Pet" then
+		if not profile.FilterPets then return end
 	else
 		if not profile.FilterMonsters then return end
+	end
+	
+	-- ignore training dummies
+	if destType == "Creature" then
+		local destNPC = tonumber( (select(6, strsplit("-", destGUID))) )
+		if S.TrainingDummy[destNPC] then return end
 	end
 	
 	--------------
@@ -574,7 +569,8 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 			for i = 13, 15 do
 				selfres.soulstone[destGUID][i] = selfres.soulstone_source[destGUID][i-8] -- copy spell
 			end
-			SwitchSourceDest(selfres.soulstone[destGUID]) -- switch source and dest because if used on self it shows "[Self] used [Player][Soulstone]"
+			-- switch source and dest because if used on self it shows "[Self] used [Player][Soulstone]"
+			SwitchSourceDest(selfres.soulstone[destGUID])
 		elseif GetPlayerClass[destGUID] == "SHAMAN" then -- possible reincarnation active
 			selfres.reincarnation[destGUID] = {event, unpack(CLEU)}
 			selfres.reincarnation[destGUID][3] = "SPELL_RESURRECT_SELF"
@@ -659,20 +655,15 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	------------
 	
 	elseif subevent == "SPELL_AURA_APPLIED" then
-		local isTaunt = S.Taunt[spellID] or (S.PetTaunt[spellID] and profile.PetTaunt)
-		local destNPC = (destType == "Creature")
-		if isTaunt and IsOption("Taunt") and destNPC and TankFilter("Taunt", sourceName) then
-			-- guardian is also a npc; hunter pets auto casting taunts on dummies when measuring dps
-			local isGuardian = bit_band(destFlags, COMBATLOG_OBJECT_TYPE_GUARDIAN) > 0
-			local isTrainingDummy = S.TrainingDummy[tonumber((select(6,strsplit("-", destGUID))))]
-			if S.PetTaunt[spellID] and (isGuardian or isTrainingDummy) then return end
+		if S.Taunt[spellID] and destType == "Creature" and IsOption("Taunt") then
+			-- guardian is also a npc
+			if bit_band(destFlags, COMBATLOG_OBJECT_TYPE_GUARDIAN) > 0 then return end
 			SetMessage("Taunt")
-		
-		-- fatal events can sometimes also happen right after e.g. the SPELL_AURA_APPLIED event
-		-- a single OnUpdate iteration later is enough to include those events as well		
 		
 		-- Holy Priest 27827 [Spirit of Redemption] fix
 		elseif spellID == 27827 and IsOption("Death") then
+			-- fatal events can sometimes also happen right after e.g. the SPELL_AURA_APPLIED event
+			-- a single OnUpdate iteration later is enough to include those events as well		
 			S.Timer:New(function() self:ShowDeath(destGUID, timestamp) return end, 0)
 		-- Death Knight 116888 [Shroud of Purgatory], Mage 87023 [Cauterized] fix
 		elseif (spellID == 116888 or spellID == 87023) and IsOption("Death") then
