@@ -128,7 +128,7 @@ function KCL:OnInitialize()
 		ACD:AddToBlizOptions(v, appValue[v].name, NAME)
 	end
 	
-	ACD:SetDefaultSize("KethoCombatLog_Parent", 700, 600)
+	ACD:SetDefaultSize("KethoCombatLog_Parent", 600, 520)
 	
 	-- slash command
 	for _, v in ipairs({"kcl", "ket", "ketho", "kethocombat", "kethocombatlog"}) do
@@ -395,7 +395,7 @@ local function SetMessage(msgtype)
 	local group = S.EventGroup[msgtype] or msgtype -- fallback
 	args.color = color[group]
 	args["local"] = profile["Local"..group]
-	args.chat = profile[(profile.ChatFilter and "Chat" or "Local")..group]
+	args.chat = profile["Chat"..group]
 end
 
 -- only append x for these chatargs

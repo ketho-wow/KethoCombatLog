@@ -150,14 +150,7 @@ S.options = {
 				Local = {
 					type = "group", order = 1,
 					inline = true,
-					name = function() return profile.ChatFilter and "|cff71D5FF"..L.LOCAL.."|r" or " " end,
-					args = {}, -- populated later
-				},
-				Chat = {
-					type = "group", order = 2,
-					inline = true,
-					name = function() return profile.ChatFilter and "|cff71D5FF"..CHAT.."|r" or " " end,
-					hidden = function() return not profile.ChatFilter end,
+					name = " ",
 					args = {}, -- populated later
 				},
 				spacing = {type = "description", order = 3, name = ""},
@@ -176,13 +169,9 @@ S.options = {
 					name = " "..CHANNEL_CATEGORY_WORLD,
 					set = "SetValue_Instance",
 				},
-				ChatFilter = {
-					type = "toggle", order = 7, descStyle = "",
-					name = "|cff71D5FF"..CHAT.." "..FILTERS.."|r",
-				},
 				newline1 = {type = "description", order = 8, name = ""},
 				ChatWindow = {
-					type = "select", order = 9, descStyle = "",
+					type = "select", order = 10, descStyle = "",
 					name = "   |cffFFFFFF"..CHAT.." Window|r",
 					values = function()
 						local ChatWindowList = {"|cffFF0000<"..ADDON_DISABLED..">|r"}
@@ -202,7 +191,7 @@ S.options = {
 					end,
 				},
 				ChatChannel = {
-					type = "select", order = 10, descStyle = "",
+					type = "select", order = 9, descStyle = "",
 					name = "   |cffFFFFFF"..CHAT.." "..CHANNEL.."|r",
 					values = function()
 						local ChatChannelList = {
@@ -431,7 +420,7 @@ S.options = {
 							get = "GetValue", set = "SetValue",
 						},
 						Physical = {
-							type = "color", order = 41,
+							type = "color", order = 41, width = .9,
 							name = "|TInterface\\Icons\\Spell_Nature_Strength:16:16:1:0"..S.crop.."|t  "..STRING_SCHOOL_PHYSICAL,
 							set = "SetSchoolColor",
 						},
@@ -550,37 +539,30 @@ do
 	local o = options.args.Main.args.Local.args
 	
 	for i, v in ipairs(S.Event) do
+		o["Chat"..v] = {
+			type = "toggle", order = i*2, width = .12,
+			desc = CHAT.." "..CHANNEL,
+			name = " ",
+		}
+		
 		o["Local"..v] = {
 			type = "toggle", order = i*2,
-			descStyle = "",
+			desc = CHAT.." Window",
 			name = function() return format("|TInterface\\Icons\\%s:16:16:1:0%s|t  |cff%s%s|r", S.EventString[v][2], S.crop, S.GeneralColor[v], S.EventString[v][1]) end,
 		}
-	end
-	
-	for i = 1, 4 do -- 5, 9, 13, ...
-		o["newline"..i] = {type = "description", order = 1+i*4, name = ""}
 	end
 	
 	-- (un)register UNIT_HEALTH according to options 
-	o.LocalResurrect.set = function(i, v) profile[i[#i]] = v; KCL:RefreshEvent() end
-end
-
-do
-	local o = options.args.Main.args.Chat.args
-	
-	for i, v in ipairs(S.Event) do
-		o["Chat"..v] = {
-			type = "toggle", order = i*2,
-			descStyle = "",
-			name = function() return format("|TInterface\\Icons\\%s:16:16:1:0%s|t  |cff%s%s|r", S.EventString[v][2], S.crop, S.GeneralColor[v], S.EventString[v][1]) end,
-		}
+	local function SetResurrect(i, v)
+		profile[i[#i]] = v
+		KCL:RefreshEvent()
 	end
+	o.LocalResurrect.set = SetResurrect
+	o.ChatResurrect.set = SetResurrect
 	
 	for i = 1, 4 do
 		o["newline"..i] = {type = "description", order = 1+i*4, name = ""}
 	end
-	
-	o.ChatResurrect.set = function(i, v) profile[i[#i]] = v; KCL:RefreshEvent() end
 end
 
 	----------------
@@ -614,10 +596,12 @@ end
 
 do
 	local o = options.args.Advanced.args.Coloring.args
+	local colorWidth = .9
 	
 	for i, v in ipairs(S.Event) do
 		o[v] = {
 			type = "color", order = 2+i, -- 3-12
+			width = colorWidth,
 			name = format("|TInterface\\Icons\\%s:16:16:1:0%s|t  %s", S.EventString[v][2], S.crop, S.EventString[v][1]),
 			set = "SetGeneralColor",
 		}
@@ -633,6 +617,7 @@ do
 		for i, v in ipairs(S.Class) do
 			o[v] = {
 				type = "color", order = 20+i, -- 21-31
+				width = colorWidth,
 				name = format("|TInterface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES:16:16:1:0:%s|t  %s", S.ClassCoords[v], LOCALIZED_CLASS_NAMES_MALE[v]),
 				get = "GetClassColor",
 				set = "SetClassColor",
@@ -643,6 +628,7 @@ do
 	for i, v in pairs(S.School) do
 		o[v] = {
 			type = "color", order = 40+i, -- 41-47
+			width = colorWidth,
 			name = format("|TInterface\\PaperDollInfoFrame\\SpellSchoolIcon%s:16:16:1:0%s|t  %s", S.SchoolRemap[v], S.crop, S.SchoolString[v]),
 			set = "SetClassColor",
 		}
