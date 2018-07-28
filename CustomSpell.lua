@@ -137,7 +137,7 @@ S.Spell = {
 		[127207] = "CAST_SUCCESS", -- "Memory of Mr. Smite" -- no cleu event
 		[127315] = "CAST_SUCCESS", -- "Skymirror Image" -- no cleu event
 		[127323] = "CAST_SUCCESS", -- "Beach Bum" -- no cleu event
-		[131493] = "AURA_APPLIED", -- "B.F.F."
+		--[131493] = "AURA_APPLIED", -- "B.F.F."; gets spammed (reapplied) when units enter draw distance
 		[145255] = "CAST_SUCCESS", -- "Aspect of Moonfang"
 		
 		[126] = "SUMMON", -- Eye of Kilrogg (Demonology)
