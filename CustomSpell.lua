@@ -85,30 +85,30 @@ S.Spell = {
 	},
 	Holiday = {
 	-- Hallow's End
-		[24717] = "AURA_APPLIED", -- [Pirate Costume]
-		[24718] = "AURA_APPLIED", -- [Ninja Costume]
-		[24719] = "AURA_APPLIED", -- [Leper Gnome Costume]
-		[24720] = "AURA_APPLIED", -- [Random Costume]
-		[24724] = "AURA_APPLIED", -- [Skeleton Costume]
-		[24733] = "AURA_APPLIED", -- [Bat Costume]
-		[24737] = "AURA_APPLIED", -- [Ghost Costume]
-		[24741] = "AURA_APPLIED", -- [Wisp Costume]
-		[44212] = "AURA_APPLIED", -- [Jack-o'-Lanterned!]
+		[24717] = "CAST_SUCCESS", -- [Pirate Costume]
+		[24718] = "CAST_SUCCESS", -- [Ninja Costume]
+		[24719] = "CAST_SUCCESS", -- [Leper Gnome Costume]
+		[24720] = "CAST_SUCCESS", -- [Random Costume]
+		[24724] = "CAST_SUCCESS", -- [Skeleton Costume]
+		[24733] = "CAST_SUCCESS", -- [Bat Costume]
+		[24737] = "CAST_SUCCESS", -- [Ghost Costume]
+		[24741] = "CAST_SUCCESS", -- [Wisp Costume]
+		[44212] = "CAST_SUCCESS", -- [Jack-o'-Lanterned!]; aura_applied bug
 	-- Feast of Winter Veil
 		[25677] = "CAST_SUCCESS", -- [Hardpacked Snowball] 
-		[26004] = "AURA_APPLIED", -- [Mistletoe]
-		[44755] = "AURA_APPLIED", -- [Snowflakes]
+		[26004] = "CAST_SUCCESS", -- [Mistletoe]
+		[44755] = "CAST_SUCCESS", -- [Snowflakes]
 	-- Midsummer Fire Festival
-		[45417] = "AURA_APPLIED", -- [Handful of Summer Petals]
+		[45417] = "CAST_SUCCESS", -- [Handful of Summer Petals]
 		[46661] = "CAST_SUCCESS", -- [Huge Snowball]
 	-- Love is in the Air
-		[61415] = "AURA_APPLIED", -- [Bouquet of Ebon Roses] [Cascade of Ebon Petals]
-		[27571] = "AURA_APPLIED", -- [Bouquet of Red Roses] [Cascade of Roses]
+		[61415] = "CAST_SUCCESS", -- [Bouquet of Ebon Roses] [Cascade of Ebon Petals]
+		[27571] = "CAST_SUCCESS", -- [Bouquet of Red Roses] [Cascade of Roses]
 	-- Noblegarden
-		[61717] = "AURA_APPLIED", -- [Blossoming Branch]
-		[61815] = "AURA_APPLIED", -- [Sprung!]
+		[61717] = "CAST_SUCCESS", -- [Blossoming Branch]
+		[61815] = "CAST_SUCCESS", -- [Sprung!]
 	-- Pilgrim's Bounty
-		[61781] = "AURA_APPLIED", -- [Turkey Feathers]
+		[61781] = "CAST_SUCCESS", -- [Turkey Feathers]
 	},
 	Fun = {
 		[8690] = "CAST_START", -- Hearthstone aka Homerock :)
@@ -137,7 +137,7 @@ S.Spell = {
 		[127207] = "CAST_SUCCESS", -- "Memory of Mr. Smite" -- no cleu event
 		[127315] = "CAST_SUCCESS", -- "Skymirror Image" -- no cleu event
 		[127323] = "CAST_SUCCESS", -- "Beach Bum" -- no cleu event
-		--[131493] = "AURA_APPLIED", -- "B.F.F."; gets spammed (reapplied) when units enter draw distance
+		[131493] = "CAST_SUCCESS", -- "B.F.F."; aura_applied bug
 		[145255] = "CAST_SUCCESS", -- "Aspect of Moonfang"
 		
 		[126] = "SUMMON", -- Eye of Kilrogg (Demonology)
