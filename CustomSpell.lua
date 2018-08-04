@@ -225,6 +225,7 @@ S.Blacklist = {
 	[48743] = true, -- SPELL_INSTAKILL, Death Knight: [Death Pact] 
 	[49560] = true, -- SPELL_MISSED, Death Knight: [Death Grip] 
 	[81280] = true, -- SPELL_INSTAKILL, Death Knight: Bloodworm: [Blood Burst]
+	[197509] = true, -- SPELL_INSTAKILL, Death Knight: Bloodworm: [Bloodworm]
 	[108503] = true, -- SPELL_INSTAKILL, Warlock: [Grimoire of Sacrifice]
 	[123982] = true, -- SPELL_INSTAKILL, Death Knight: [Purgatory]
 	[196278] = true, -- SPELL_INSTAKILL, Warlock: [Implosion]
