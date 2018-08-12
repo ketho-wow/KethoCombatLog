@@ -200,10 +200,18 @@ S.options = {
 							"|cff2E9AFE#|r   |cffFF4040"..CHAT_MSG_YELL.."|r",
 							"|cff2E9AFE#|r   |cffA8A8FF"..GROUP.."|r",
 						}
-						for i = 1, 10 do
-							local channelID = select((i*2)-1, GetChannelList())
-							if channelID then
-								ChatChannelList[channelID+4] = "|cff2E9AFE"..channelID..".|r  "..select(i*2,GetChannelList())
+						-- blizz says their gc is good :)
+						local chanList = {GetChannelList()}
+						local channels = {}
+
+						for i = 1, #chanList, 3 do
+							local name = chanList[i+1]
+							channels[chanList[i]] = strfind(name, "Community:") and ChatFrame_ResolveChannelName(name) or name
+						end
+						
+						for i = 1, MAX_WOW_CHAT_CHANNELS do
+							if channels[i] then
+								ChatChannelList[i+4] = "|cff2E9AFE"..i..".|r  "..channels[i]
 							end
 						end
 						return ChatChannelList

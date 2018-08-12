@@ -124,6 +124,7 @@ S.Spell = {
 		[45426] = "SUMMON", -- "Brazier of Dancing Flames"
 		[49844] = "CREATE", -- Using Direbrew's Remote
 		[61031] = "CREATE", -- Toy Train Set
+		-- Wind-Up Train Wrecker; no event
 		[107926] = "SUMMON", -- Sandbox Tiger
 		
 		[135007] = "SUMMON", -- Sandbox Tiger
@@ -145,6 +146,7 @@ S.Spell = {
 		[2096] = "CAST_SUCCESS", -- Mind Vision -- for AURA_APPLIED its also cast on self
 		[6196] = "CAST_SUCCESS", -- Far Sight (Enhancement)
 		[6197] = "CAST_SUCCESS", -- Eagle Eye (Beast Mastery)
+		[73325] = "CAST_SUCCESS", -- Leap of Faith
 		[111759] = "AURA_APPLIED", -- Levitate
 	},
 	Misdirection = {[34477] = "AURA_APPLIED"}, -- 35079 for self
