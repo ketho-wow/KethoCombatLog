@@ -39,6 +39,10 @@ S.Spell = {
 		[146935] = "SUMMON", -- Pandaren Treasure Noodle Cart
 		
 		[175215] = "CREATE", -- Savage Feast
+		
+		[259410] = "CREATE", -- Bountiful Captain's Feast
+		[185709] = "CREATE", -- Sugar-Crusted Fish Feast
+		[276972] = "CREATE", -- Mystical Cauldron
 	},
 	RepairBot = {
 		[22700] = "SUMMON", -- [Field Repair Bot 74A]
@@ -57,7 +61,10 @@ S.Spell = {
 		[80353] = "CAST_SUCCESS", -- Time Warp
 		[90355] = "CAST_SUCCESS", -- Core Hound: Ancient Hysteria
 		[160452] = "CAST_SUCCESS", -- Nether Ray: Netherwinds
+		
 		[178207] = "CAST_SUCCESS", -- Drums of Fury
+		[230935] = "CAST_SUCCESS", -- Drums of the Mountain
+		[256740] = "CAST_SUCCESS", -- Drums of the Maelstrom
 		[264667] = "CAST_SUCCESS", -- Primal Rage
 	},
 	Portal = {
@@ -83,6 +90,9 @@ S.Spell = {
 		[224871] = "CREATE", -- "Portal: Dalaran - Broken Isles"
 		[120146] = "CREATE", -- "Ancient Portal: Dalaran"
 		[67833] = "SUMMON", -- "Wormhole" [Wormhole Generator: Northrend]
+		
+		[281400] = "SUMMON", -- Portal: Boralus
+		[281402] = "SUMMON", -- Portal: Dazar'alor
 	},
 	Holiday = {
 	-- Hallow's End
@@ -222,6 +232,8 @@ S.CrowdControl = {
 	[710] = true, -- [Banish]
 	[6358] = true, -- [Seduction] (Succubus)
 	[51514] = true, -- [Hex]
+-- Demon Hunter
+	[217832] = true, -- [Imprison]
 }
 
 S.Blacklist = {
