@@ -1,11 +1,8 @@
--------------------------------------------
---- Author: Ketho (EU-Boulderfist)		---
---- License: Public Domain				---
---- Created: 2009.09.01					---
--------------------------------------------
---- Curse			https://www.curseforge.com/wow/addons/kethocombatlog
---- WoWInterface	http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
+-- Author: Ketho (EU-Boulderfist)
+-- Created: 2009.09.01
 
+-- Curse			https://www.curseforge.com/wow/addons/kethocombatlog
+-- WoWInterface		http://www.wowinterface.com/downloads/info18901-KethoCombatLog.html
 -- This is my first addon and was my introduction to programming/scripting
 
 local NAME, S = ...
