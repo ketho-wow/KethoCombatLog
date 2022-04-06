@@ -1,5 +1,5 @@
-## Interface: 80300
-## Version: @project-version@
+## Interface: 11400
+## Version: v2.3.0
 ## Title: KethoCombatLog
 ## Notes: Ketho's Combat Log
 ## Author: Ketho @ EU-Boulderfist
@@ -9,7 +9,6 @@
 ## X-Curse-Project-ID: 21402
 ## X-WoWI-ID: 18901
 
-#@no-lib-strip@
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 Libs\AceAddon-3.0\AceAddon-3.0.xml
@@ -20,7 +19,6 @@ Libs\AceConsole-3.0\AceConsole-3.0.xml
 Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\AceConfig-3.0\AceConfig-3.0.xml
 Libs\LibSink-2.0\lib.xml
-#@end-no-lib-strip@
 
 Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 

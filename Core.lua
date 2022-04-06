@@ -328,7 +328,7 @@ end})
 
 local GetSpellIcon = setmetatable({}, {__index = function(t, k)
 	-- since 7.2 some spells dont return an icon
-	local v = select(3, GetSpellInfo(k)) or 134400 -- "INV_MISC_QUESTIONMARK"
+	local v, _ = select(3, GetSpellInfo(k)) or 134400 -- "INV_MISC_QUESTIONMARK"
 	rawset(t, k, v)
 	return v
 end})
@@ -342,7 +342,12 @@ end})
 local function _GetSpellInfo(spellID, spellName, spellSchool)
 	local schoolNameLocal, schoolNameChat, schoolColor = unpack(GetSpellSchool[spellSchool])
 	local iconSize = profile.IconSize
-	local spellIcon = iconSize>1 and format("|T%s:%s:%s:0:0%s|t", GetSpellIcon[spellID], iconSize, iconSize, S.crop) or ""
+	local spellIcon
+	if spellID == 0 then
+		spellIcon = iconSize>1 and format("|T%s:%s:%s:0:0%s|t", GetSpellIcon[spellName], iconSize, iconSize, S.crop) or ""
+	else
+		spellIcon = iconSize>1 and format("|T%s:%s:%s:0:0%s|t", GetSpellIcon[spellID], iconSize, iconSize, S.crop) or ""
+	end
 	local spellLinkLocal = format("|cff%s"..TEXT_MODE_A_STRING_SPELL.."|r", schoolColor, spellID, 0, "", "["..spellName.."]")
 	return schoolNameLocal, schoolNameChat, spellLinkLocal..spellIcon, _GetSpellLink[spellID]
 end
@@ -494,6 +499,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	local SuffixParam1, SuffixParam2, SuffixParam3, SuffixParam4, SuffixParam5, SuffixParam6, SuffixParam7, SuffixParam8, SuffixParam9
 	
 	local prefix = strsub(subevent, 1, 5)
+
 	if prefix == "SWING" then
 		SuffixParam1, SuffixParam2, SuffixParam3, SuffixParam4, SuffixParam5, SuffixParam6, SuffixParam7, SuffixParam8, SuffixParam9 = select(12, unpack(CLEU))
 		args.amount = SuffixParam1
@@ -507,7 +513,6 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 	-------------
 	--- Spell ---
 	-------------
-		
 		args.school, args.schoolx, args.spell, args.spellx = _GetSpellInfo(spellID, spellName, spellSchool)
 		args.spellname = format("[%s]", spellName)
 		

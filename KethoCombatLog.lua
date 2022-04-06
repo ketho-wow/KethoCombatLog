@@ -157,13 +157,11 @@ S.LibSinkCombatText = {
 S.Event = {
 	[1] = "Taunt",
 	[3] = "Interrupt",
-	[5] = "Juke",
-	[7] = "Dispel",
-	[9] = "Reflect",
+	[5] = "Dispel",
+	[7] = "Reflect",
 	[2] = "CrowdControl",
-	[4] = "Break",
-	[6] = "Death",
-	[8] = "Resurrect",
+	[4] = "Death",
+	[6] = "Resurrect",
 }
 
 S.EventMsg = { -- options order
@@ -172,13 +170,9 @@ S.EventMsg = { -- options order
 	"Juke",
 	"Dispel",
 	"Cleanse",
-	"Spellsteal",
 	"Reflect",
 	"Miss",
 	"CrowdControl",
-	"Break_Spell",
-	"Break",
-	"Break_NoSource",
 	"Death",
 	"Death_Melee",
 	"Death_Environmental",
@@ -194,13 +188,9 @@ S.EventString = {
 	Juke = {L.EVENT_JUKE, "Spell_Frost_IceShock"},
 	Dispel = {GetSpellInfo(25808), "Spell_Holy_DispelMagic"},
 	Cleanse = {GetSpellInfo(4987), "Spell_Holy_Purify"},
-	Spellsteal = {GetSpellInfo(30449), "Spell_Arcane_Arcane02"},
 	Reflect = {REFLECT, "Ability_Warrior_ShieldReflection"},
 	Miss = {MISS, "Ability_Hunter_MasterMarksman"},
 	CrowdControl = {L.EVENT_CROWDCONTROL, "Spell_Nature_Polymorph"},
-	Break_Spell = {GetSpellInfo(82881).." ("..STAT_CATEGORY_SPELL..")", "Spell_Shadow_ShadowWordPain"},
-	Break = {GetSpellInfo(82881), "Ability_Seal"},
-	Break_NoSource = {GetSpellInfo(82881).." (No "..SOURCE:gsub(":","")..")", "INV_Misc_QuestionMark"},
 	Death = {TUTORIAL_TITLE25, "Ability_Rogue_FeignDeath"},
 	Death_Melee = {TUTORIAL_TITLE25.." ("..ACTION_SWING..")", "Spell_Holy_FistOfJustice"},
 	Death_Environmental = {TUTORIAL_TITLE25.." ("..ENVIRONMENTAL_DAMAGE..")", "Spell_Shaman_LavaFlow"},
@@ -212,13 +202,10 @@ S.EventString = {
 
 S.EventGroup = {
 	Cleanse = "Dispel",
-	Spellsteal = "Dispel",
 	Miss = "Reflect",
 	Death_Melee = "Death",
 	Death_Environmental = "Death",
 	Death_Instakill = "Death",
-	Break_Spell = "Break",
-	Break_NoSource = "Break",
 	Soulstone = "Resurrect",
 	Reincarnation = "Resurrect",
 }
@@ -295,17 +282,14 @@ S.SpellGroupOrder = {"Feast", "RepairBot", "Bloodlust", "Portal", "Holiday", "Fu
 
 S.Class = { -- options order
 	[1] = "WARRIOR",
-	[3] = "DEATHKNIGHT",
-	[5] = "ROGUE",
-	[7] = "HUNTER",
-	[9] = "MAGE",
-	[11] = "WARLOCK",
+	[4] = "ROGUE",
+	[5] = "HUNTER",
+	[7] = "MAGE",
+	[8] = "WARLOCK",
 	[2] = "PALADIN",
-	[4] = "DRUID",
-	[6] = "MONK",
-	[8] = "SHAMAN",
-	[10] = "PRIEST",
-	[12] = "DEMONHUNTER",
+	[3] = "DRUID",
+	[6] = "SHAMAN",
+	[9] = "PRIEST",
 }
 
 S.ClassCoords = {
@@ -318,9 +302,6 @@ S.ClassCoords = {
 	PRIEST = "256:256:130:186:68:124",
 	WARLOCK = "256:256:194:250:68:124",
 	PALADIN = "256:256:4:60:132:188",
-	DEATHKNIGHT = "256:256:68:124:133:189",
-	MONK = "256:256:130:186:132:188",
-	DEMONHUNTER = "256:256:194:250:132:188",
 }
 
 	--------------

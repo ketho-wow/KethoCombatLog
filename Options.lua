@@ -21,8 +21,6 @@ local format = format
 
 local numberExample = random(1e5, 1e6)
 local parentheses = "[()]"
--- Show Time Warp for Mage, Bloodlust for Horde, Heroism for Alliance; Naming the variable Bloodlust because of the original Warcraft 3
-local Bloodlust = (S.player.class == "MAGE") and {GetSpellInfo(80353)} or (UnitFactionGroup("player") == "Horde") and {GetSpellInfo(2825)} or {GetSpellInfo(32182)}
 
 local function IsNotEvent(event)
 	return not (profile["Local"..event] or profile["Chat"..event])
@@ -59,7 +57,6 @@ S.defaults = { -- KethoCombatLog.db.defaults
 		PetTaunt = true,
 		FriendlyDispel = true,
 		HostileDispel = true,
-		Spellsteal = true,
 		
 		SpellOutput = 1,
 		SpellFilterSelf = true, -- exclusive filtering
@@ -98,7 +95,6 @@ S.defaults = { -- KethoCombatLog.db.defaults
 			
 			Dispel = L.MSG_DISPEL,
 			Cleanse = L.MSG_CLEANSE,
-			Spellsteal = L.MSG_SPELLSTEAL,
 			
 			Reflect = L.MSG_REFLECT,
 			Miss = L.MSG_MISS,
@@ -336,11 +332,6 @@ S.options = {
 							name = " |TInterface\\Icons\\Spell_Nature_Purge:16:16:1:0"..S.crop.."|t  "..HOSTILE.." (|cff71D5FF"..ACTION_SPELL_DISPEL_BUFF.."|r)",
 							disabled = function() return IsNotEvent("Dispel") end,
 						},
-						Spellsteal = {
-							type = "toggle", order = 8, width = "full", descStyle = "",
-							name = " |TInterface\\Icons\\Spell_Arcane_Arcane02:16:16:1:0"..S.crop.."|t  "..S.EventString.Spellsteal[1],
-							disabled = function() return IsNotEvent("Dispel") end,
-						},
 						header3 = {type = "header", order = 9, name = "|TInterface\\Icons\\Spell_Holy_Resurrection:14:14:1:0"..S.crop.."|t  "..RESURRECT},
 						CombatRes = {
 							type = "toggle", order = 10, width = "full", descStyle = "",
@@ -362,10 +353,6 @@ S.options = {
 							type = "toggle", order = 4, descStyle = "",
 							name = " |TInterface\\Icons\\Achievement_Boss_Mimiron_01:16:16:1:0"..S.crop.."|t  Repair Bot",
 						},
-						Bloodlust = {
-							type = "toggle", order = 6, desc = UnitFactionGroup("player") == "Horde" and GetSpellDescription(2825) or GetSpellDescription(32182),
-							name = format(" |T%s:16:16:1:0%s|t  |cff71D5FF%s|r", Bloodlust[3], S.crop, Bloodlust[1]),
-						},
 						Portal = {
 							type = "toggle", order = 3, descStyle = "",
 							name = " |TInterface\\Icons\\Spell_Arcane_PortalIronForge:16:16:1:0"..S.crop.."|t  Portal",
@@ -377,14 +364,6 @@ S.options = {
 						Fun = {
 							type = "toggle", order = 7, descStyle = "",
 							name = " |TInterface\\Icons\\INV_Misc_Bomb_04:16:16:1:0"..S.crop.."|t  |cffF6ADC6Fun|r",
-						},
-						Misdirection = {
-							type = "toggle", order = 8, desc = GetSpellDescription(34477),
-							name = " |TInterface\\Icons\\ability_hunter_misdirection:16:16:1:0"..S.crop.."|t  |c"..RAID_CLASS_COLORS.HUNTER.colorStr..GetSpellInfo(34477).."|r",
-						},
-						TricksTrade = {
-							type = "toggle", order = 9, desc = GetSpellDescription(57934),
-							name = " |TInterface\\Icons\\ability_rogue_tricksofthetrade:16:16:1:0"..S.crop.."|t  |c"..RAID_CLASS_COLORS.ROGUE.colorStr..GetSpellInfo(57934).."|r",
 						},
 						header1 = {type = "header", order = 20, name = ""},
 						SpellOutput = {
