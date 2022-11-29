@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 100002
 ## Version: @project-version@
 ## Title: KethoCombatLog
 ## Notes: Ketho's Combat Log
