@@ -8,14 +8,13 @@ local L = S.L
 local player = S.player
 local options = S.options
 
-local profile, char
+local profile
 local color
 
 -- stuff gets called a lot in CLEU addons
 local _G = _G
 local tonumber = tonumber
 local select, unpack = select, unpack
-local time = time
 local strsub, strmatch = strsub, strmatch
 local strsplit = strsplit
 local format, gsub, gmatch = format, gsub, gmatch
@@ -23,7 +22,6 @@ local wipe, table_maxn = wipe, table.maxn
 local bit_band = bit.band
 
 local UnitGUID = UnitGUID
-local GetSpellInfo, GetSpellLink = GetSpellInfo, GetSpellLink
 local GetPlayerInfoByGUID = GetPlayerInfoByGUID
 
 local UnitAffectingCombat = UnitAffectingCombat
@@ -37,7 +35,6 @@ local COMBATLOG_OBJECT_RAIDTARGET_MASK = COMBATLOG_OBJECT_RAIDTARGET_MASK
 local COMBATLOG_OBJECT_REACTION_FRIENDLY = COMBATLOG_OBJECT_REACTION_FRIENDLY
 local COMBATLOG_OBJECT_REACTION_HOSTILE = COMBATLOG_OBJECT_REACTION_HOSTILE
 
-local TEXT_MODE_A_TIMESTAMP = TEXT_MODE_A_TIMESTAMP
 local TEXT_MODE_A_STRING_SOURCE_UNIT = TEXT_MODE_A_STRING_SOURCE_UNIT
 local TEXT_MODE_A_STRING_DEST_UNIT = TEXT_MODE_A_STRING_DEST_UNIT
 local TEXT_MODE_A_STRING_SPELL = TEXT_MODE_A_STRING_SPELL
@@ -61,7 +58,7 @@ local death = {
 }
 
 -- reincarnation never actually shows up in CLEU
-local Reincarnation = {20608, GetSpellInfo(20608), 8}
+local Reincarnation = {20608, C_Spell.GetSpellInfo(20608), 8}
 
 local selfres = {
 	soulstone = {}, -- Warlock Soulstone
@@ -80,6 +77,12 @@ local spell = { -- lookup table for currently enabled custom spells
 	AURA_APPLIED = {},
 	CREATE = {},
 	SUMMON = {},
+}
+
+local SCM_restrict = {
+	SAY = true,
+	YELL = true,
+	CHANNEL = true,
 }
 
 local args = {}
@@ -162,7 +165,7 @@ end
 
 function KCL:RefreshDB()
 	-- table shortcuts
-	profile, char = self.db.profile, self.db.char
+	profile = self.db.profile
 	color = profile.color
 	
 	for i = 1, 2 do -- refresh db in other files
@@ -328,13 +331,13 @@ end})
 
 local GetSpellIcon = setmetatable({}, {__index = function(t, k)
 	-- since 7.2 some spells dont return an icon
-	local v = select(3, GetSpellInfo(k)) or 134400 -- "INV_MISC_QUESTIONMARK"
+	local v = C_Spell.GetSpellInfo(k).iconID or 134400 -- "INV_MISC_QUESTIONMARK"
 	rawset(t, k, v)
 	return v
 end})
 
 local _GetSpellLink = setmetatable({}, {__index = function(t, k)
-	local v = GetSpellLink(k)
+	local v = C_Spell.GetSpellLink(k)
 	rawset(t, k, v)
 	return v
 end})
@@ -840,12 +843,8 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		if profile.ChatWindow > 1 then
 			S.ChatFrame:AddMessage(textLocal, unpack(args.color))
 		end
-		-- LibSink; use local event group; bypass it if the option for combat text is disabled
-		if profile.sink20OutputSink == "Blizzard" and SHOW_COMBAT_TEXT == "0" then
-			CombatText_AddMessage(textLocal, COMBAT_TEXT_SCROLL_FUNCTION, unpack(args.color))
-		else
-			self:Pour(profile.sink20OutputSink == "Channel" and textChat or textLocal, unpack(args.color))
-		end
+		-- LibSink
+		self:Pour(profile.sink20OutputSink == "Channel" and textChat or textLocal, unpack(args.color))
 	end
 	
 	-- dont default to "SAY" if chatType is nil
@@ -854,6 +853,7 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 		local iseedeadpeople = UnitIsDeadOrGhost("player") and S.Talk[chatType]
 		-- dont ever spam the battleground group
 		if not (iseedeadpeople or isBattleground) then
+			if SCM_restrict[chatType] and not IsInInstance() then return end
 			SendChatMessage(textChat, chatType, nil, profile.ChatChannel-4)
 		end
 	end

@@ -31,7 +31,7 @@ S.Spell = {
 		[126494] = "CREATE", -- Great Banquet of the Oven, 250 primary stat or 415 stamina
 		[126502] = "CREATE", -- Great Banquet of the Grill, 250 primary stat or 275 strength or 375 stamina
 		[126498] = "CREATE", -- Great Banquet of the Pot, 250 primary stat or 275 intellect or 375 stamina
-		[126498] = "CREATE", -- Great Banquet of the Steamer, 250 primary stat or 275 spirit or 375 stamina
+		[126500] = "CREATE", -- Great Banquet of the Steamer, 250 primary stat or 275 spirit or 375 stamina
 		[126496] = "CREATE", -- Great Banquet of the Wok, 250 primary stat or 275 agility or 375 stamina
 		
 		[146933] = "SUMMON", -- Noodle Cart
@@ -137,11 +137,9 @@ S.Spell = {
 		[61031] = "CREATE", -- Toy Train Set
 		-- Wind-Up Train Wrecker; no event
 		[107926] = "SUMMON", -- Sandbox Tiger
-		
 		[135007] = "SUMMON", -- Sandbox Tiger
 		[135008] = "SUMMON", -- Sandbox Tiger
 		[135009] = "SUMMON", -- Sandbox Tiger
-		[107926] = "SUMMON", -- Sandbox Tiger
 		
 		[6405] = "CAST_SUCCESS", -- "Furbolg Form"
 		[58501] = "CAST_SUCCESS", -- "Iron Boot Flask"

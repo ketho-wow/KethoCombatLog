@@ -22,7 +22,7 @@ local format = format
 local numberExample = random(1e5, 1e6)
 local parentheses = "[()]"
 -- Show Time Warp for Mage, Bloodlust for Horde, Heroism for Alliance; Naming the variable Bloodlust because of the original Warcraft 3
-local Bloodlust = (S.player.class == "MAGE") and {GetSpellInfo(80353)} or (UnitFactionGroup("player") == "Horde") and {GetSpellInfo(2825)} or {GetSpellInfo(32182)}
+local Bloodlust = (S.player.class == "MAGE") and C_Spell.GetSpellInfo(80353) or (UnitFactionGroup("player") == "Horde") and C_Spell.GetSpellInfo(2825) or C_Spell.GetSpellInfo(32182)
 
 local function IsNotEvent(event)
 	return not (profile["Local"..event] or profile["Chat"..event])
@@ -138,7 +138,7 @@ end
 S.options = {
 	type = "group",
 	childGroups = "tab",
-	name = format("%s |cffADFF2F%s|r", "Ketho |cffFFFFFFCombatLog|r", GetAddOnMetadata(NAME, "Version")),
+	name = format("%s |cffADFF2F%s|r", "Ketho |cffFFFFFFCombatLog|r", C_AddOns.GetAddOnMetadata(NAME, "Version")),
 	args = {
 		Main = {
 			type = "group", order = 1,
@@ -200,20 +200,20 @@ S.options = {
 							"|cff2E9AFE#|r   |cffFF4040"..CHAT_MSG_YELL.."|r",
 							"|cff2E9AFE#|r   |cffA8A8FF"..GROUP.."|r",
 						}
-						-- blizz says their gc is good :)
-						local chanList = {GetChannelList()}
-						local channels = {}
+						-- -- blizz says their gc is good :)
+						-- local chanList = {GetChannelList()}
+						-- local channels = {}
 
-						for i = 1, #chanList, 3 do
-							local name = chanList[i+1]
-							channels[chanList[i]] = strfind(name, "Community:") and ChatFrame_ResolveChannelName(name) or name
-						end
+						-- for i = 1, #chanList, 3 do
+						-- 	local name = chanList[i+1]
+						-- 	channels[chanList[i]] = strfind(name, "Community:") and ChatFrame_ResolveChannelName(name) or name
+						-- end
 						
-						for i = 1, MAX_WOW_CHAT_CHANNELS do
-							if channels[i] then
-								ChatChannelList[i+4] = "|cff2E9AFE"..i..".|r  "..channels[i]
-							end
-						end
+						-- for i = 1, MAX_WOW_CHAT_CHANNELS do
+						-- 	if channels[i] then
+						-- 		ChatChannelList[i+4] = "|cff2E9AFE"..i..".|r  "..channels[i]
+						-- 	end
+						-- end
 						return ChatChannelList
 					end,
 					set = function(i, v)
@@ -363,8 +363,8 @@ S.options = {
 							name = " |TInterface\\Icons\\Achievement_Boss_Mimiron_01:16:16:1:0"..S.crop.."|t  Repair Bot",
 						},
 						Bloodlust = {
-							type = "toggle", order = 6, desc = UnitFactionGroup("player") == "Horde" and GetSpellDescription(2825) or GetSpellDescription(32182),
-							name = format(" |T%s:16:16:1:0%s|t  |cff71D5FF%s|r", Bloodlust[3], S.crop, Bloodlust[1]),
+							type = "toggle", order = 6, desc = UnitFactionGroup("player") == "Horde" and C_Spell.GetSpellDescription(2825) or C_Spell.GetSpellDescription(32182),
+							name = format(" |T%s:16:16:1:0%s|t  |cff71D5FF%s|r", Bloodlust.iconID, S.crop, Bloodlust.name),
 						},
 						Portal = {
 							type = "toggle", order = 3, descStyle = "",
@@ -379,12 +379,12 @@ S.options = {
 							name = " |TInterface\\Icons\\INV_Misc_Bomb_04:16:16:1:0"..S.crop.."|t  |cffF6ADC6Fun|r",
 						},
 						Misdirection = {
-							type = "toggle", order = 8, desc = GetSpellDescription(34477),
-							name = " |TInterface\\Icons\\ability_hunter_misdirection:16:16:1:0"..S.crop.."|t  |c"..RAID_CLASS_COLORS.HUNTER.colorStr..GetSpellInfo(34477).."|r",
+							type = "toggle", order = 8, desc = C_Spell.GetSpellDescription(34477),
+							name = " |TInterface\\Icons\\ability_hunter_misdirection:16:16:1:0"..S.crop.."|t  |c"..RAID_CLASS_COLORS.HUNTER.colorStr..C_Spell.GetSpellName(34477).."|r",
 						},
 						TricksTrade = {
-							type = "toggle", order = 9, desc = GetSpellDescription(57934),
-							name = " |TInterface\\Icons\\ability_rogue_tricksofthetrade:16:16:1:0"..S.crop.."|t  |c"..RAID_CLASS_COLORS.ROGUE.colorStr..GetSpellInfo(57934).."|r",
+							type = "toggle", order = 9, desc = C_Spell.GetSpellDescription(57934),
+							name = " |TInterface\\Icons\\ability_rogue_tricksofthetrade:16:16:1:0"..S.crop.."|t  |c"..RAID_CLASS_COLORS.ROGUE.colorStr..C_Spell.GetSpellName(57934).."|r",
 						},
 						header1 = {type = "header", order = 20, name = ""},
 						SpellOutput = {
@@ -765,7 +765,7 @@ function KCL:GetSpellData()
 		-- sort spells by id so it looks nice
 		for _, v2 in ipairs(S.SortTable(S.Spell[v1])) do
 			-- tab characters are not supported in a widget, have to do with 6 spaces to make it look indented :(
-			s = s..format('      [%d] = "%s", |cff509F00-- [%s]|r\n', v2, S.Spell[v1][v2], GetSpellInfo(v2) or "")
+			s = s..format('      [%d] = "%s", |cff509F00-- [%s]|r\n', v2, S.Spell[v1][v2], C_Spell.GetSpellName(v2) or "")
 		end
 		s = s.."},\n" -- not actually correct Lua table syntax since I omitted the parent table
 	end

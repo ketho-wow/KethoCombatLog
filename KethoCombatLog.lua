@@ -189,25 +189,25 @@ S.EventMsg = { -- options order
 }
 
 S.EventString = {
-	Taunt = {GetSpellInfo(355), "Spell_Nature_Reincarnation"},
+	Taunt = {C_Spell.GetSpellName(355), "Spell_Nature_Reincarnation"},
 	Interrupt = {INTERRUPT, "Ability_Kick"},
 	Juke = {L.EVENT_JUKE, "Spell_Frost_IceShock"},
-	Dispel = {GetSpellInfo(25808), "Spell_Holy_DispelMagic"},
-	Cleanse = {GetSpellInfo(4987), "Spell_Holy_Purify"},
-	Spellsteal = {GetSpellInfo(30449), "Spell_Arcane_Arcane02"},
+	Dispel = {C_Spell.GetSpellName(25808), "Spell_Holy_DispelMagic"},
+	Cleanse = {C_Spell.GetSpellName(4987), "Spell_Holy_Purify"},
+	Spellsteal = {C_Spell.GetSpellName(30449), "Spell_Arcane_Arcane02"},
 	Reflect = {REFLECT, "Ability_Warrior_ShieldReflection"},
 	Miss = {MISS, "Ability_Hunter_MasterMarksman"},
 	CrowdControl = {L.EVENT_CROWDCONTROL, "Spell_Nature_Polymorph"},
-	Break_Spell = {GetSpellInfo(82881).." ("..STAT_CATEGORY_SPELL..")", "Spell_Shadow_ShadowWordPain"},
-	Break = {GetSpellInfo(82881), "Ability_Seal"},
-	Break_NoSource = {GetSpellInfo(82881).." (No "..SOURCE:gsub(":","")..")", "INV_Misc_QuestionMark"},
+	Break_Spell = {C_Spell.GetSpellName(82881).." ("..STAT_CATEGORY_SPELL..")", "Spell_Shadow_ShadowWordPain"},
+	Break = {C_Spell.GetSpellName(82881), "Ability_Seal"},
+	Break_NoSource = {C_Spell.GetSpellName(82881).." (No "..SOURCE:gsub(":","")..")", "INV_Misc_QuestionMark"},
 	Death = {TUTORIAL_TITLE25, "Ability_Rogue_FeignDeath"},
 	Death_Melee = {TUTORIAL_TITLE25.." ("..ACTION_SWING..")", "Spell_Holy_FistOfJustice"},
 	Death_Environmental = {TUTORIAL_TITLE25.." ("..ENVIRONMENTAL_DAMAGE..")", "Spell_Shaman_LavaFlow"},
 	Death_Instakill = {TUTORIAL_TITLE25.." (Instakill)", "INV_Misc_Bone_HumanSkull_01"},
-	Resurrect = {GetSpellInfo(2006), "Spell_Holy_Resurrection"},
-	Soulstone = {GetSpellInfo(20707), "Spell_Shadow_SoulGem"},
-	Reincarnation = {GetSpellInfo(20608), "spell_shaman_improvedreincarnation"},
+	Resurrect = {C_Spell.GetSpellName(2006), "Spell_Holy_Resurrection"},
+	Soulstone = {C_Spell.GetSpellName(20707), "Spell_Shadow_SoulGem"},
+	Reincarnation = {C_Spell.GetSpellName(20608), "spell_shaman_improvedreincarnation"},
 }
 
 S.EventGroup = {
