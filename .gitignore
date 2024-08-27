@@ -1,6 +1,1 @@
-.luacheckrc
-.vscode
-Libs/Ace*
-Libs/CallbackHandler-1.0
-Libs/LibSink-2.0
-Libs/LibStub
+Libs

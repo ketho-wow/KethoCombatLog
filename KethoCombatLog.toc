@@ -6,6 +6,7 @@
 ## SavedVariables: KethoCombatLogDB
 ## Dependencies: Blizzard_CombatText
 ## OptionalDeps: Ace3, LibSink-2.0
+## IconTexture: interface\icons\inv_sword_01
 ## X-Curse-Project-ID: 21402
 ## X-WoWI-ID: 18901
 
@@ -19,10 +20,9 @@ Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
 Libs\AceConsole-3.0\AceConsole-3.0.xml
 Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\AceConfig-3.0\AceConfig-3.0.xml
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibSink-2.0\lib.xml
 #@end-no-lib-strip@
-
-Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 
 CustomSpell.lua
 Locales.lua
