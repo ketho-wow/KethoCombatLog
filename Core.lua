@@ -506,6 +506,9 @@ function KCL:COMBAT_LOG_EVENT_UNFILTERED(event, ...)
 
 		spellID, spellName, spellSchool, SuffixParam1, SuffixParam2, SuffixParam3, SuffixParam4, SuffixParam5, SuffixParam6, SuffixParam7, SuffixParam8, SuffixParam9 = select(12, unpack(CLEU))
 		args.amount = SuffixParam1
+		if spellName.name then
+			spellName = spellName.name
+		end
 
 	-------------
 	--- Spell ---
