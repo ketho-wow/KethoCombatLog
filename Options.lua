@@ -37,14 +37,14 @@ S.defaults = { -- KethoCombatLog.db.defaults
 		LocalTaunt = true,
 		LocalInterrupt = true,
 		LocalDeath = true,
-		
+
 		PvE = true,
 		PvP = true,
 		World = true,
-		
+
 		ChatWindow = 2, -- ChatFrame1
 		ChatChannel = 1, -- Disabled
-		
+
 		TrimRealm = true,
 		Timestamp = 1, -- None
 		IconSize = 16,
@@ -53,17 +53,17 @@ S.defaults = { -- KethoCombatLog.db.defaults
 		CriticalFormat = true,
 		AbbreviateNumbers = true,
 		BlizzardCombatLog = true,
-		
+
 		FilterPlayers = true, -- inclusive filtering
 		TankTaunt = true,
 		PetTaunt = true,
 		FriendlyDispel = true,
 		HostileDispel = true,
 		Spellsteal = true,
-		
+
 		SpellOutput = 1,
 		SpellFilterSelf = true, -- exclusive filtering
-		
+
 		color = {
 			Taunt = {1, 0, 0}, -- #FF0000 (Red)
 			Interrupt = {0, 110/255, 1}, -- #006EFF (something Blue)
@@ -89,40 +89,40 @@ S.defaults = { -- KethoCombatLog.db.defaults
 			Unknown = {191/255, 191/255, 191/255}, -- #BFBFBF
 			Timestamp = {0.67, 0.67, 0.67},
 		},
-		
+
 		message = {
 			Taunt = L.MSG_TAUNT,
-			
+
 			Interrupt = L.MSG_INTERRUPT,
 			Juke = L.MSG_JUKE,
-			
+
 			Dispel = L.MSG_DISPEL,
 			Cleanse = L.MSG_CLEANSE,
 			Spellsteal = L.MSG_SPELLSTEAL,
-			
+
 			Reflect = L.MSG_REFLECT,
 			Miss = L.MSG_MISS,
-			
+
 			CrowdControl = L.MSG_CROWDCONTROL,
 			Break = L.MSG_BREAK,
 			Break_NoSource = L.MSG_BREAK_NOSOURCE,
 			Break_Spell = L.MSG_BREAK_SPELL,
-			
+
 			Death = L.MSG_DEATH,
 			Death_Melee = L.MSG_DEATH_MELEE,
 			Death_Environmental = L.MSG_DEATH_ENVIRONMENTAL,
 			Death_Instakill = L.MSG_DEATH_INSTAKILL,
-			
+
 			Save = L.MSG_SAVE,
 			Resurrect = L.MSG_RESURRECT,
 			Soulstone = L.MSG_SELFRES_SOULSTONE,
 			Reincarnation = L.MSG_SELFRES_REINCARNATION,
-			
+
 			CAST_START = S.SpellMsg.unit.CAST_START,
 			CAST_SUCCESS_NO_DEST = S.SpellMsg.unit.CAST_SUCCESS_NO_DEST,
 			CAST_SUCCESS = S.SpellMsg.unit.CAST_SUCCESS,
 		},
-		
+
 		sink20OutputSink = "None",
 	},
 }
@@ -208,7 +208,7 @@ S.options = {
 						-- 	local name = chanList[i+1]
 						-- 	channels[chanList[i]] = strfind(name, "Community:") and ChatFrame_ResolveChannelName(name) or name
 						-- end
-						
+
 						-- for i = 1, MAX_WOW_CHAT_CHANNELS do
 						-- 	if channels[i] then
 						-- 		ChatChannelList[i+4] = "|cff2E9AFE"..i..".|r  "..channels[i]
@@ -248,7 +248,7 @@ S.options = {
 							end,
 						},
 						IconSize = {
-							type = "select", order = 3, descStyle = "", 
+							type = "select", order = 3, descStyle = "",
 							name = "|cffFFFFFF"..EMBLEM_SYMBOL.." Size|r",
 							values = S.IconValues,
 						},
@@ -545,29 +545,29 @@ end
 
 do
 	local o = options.args.Main.args.Local.args
-	
+
 	for i, v in ipairs(S.Event) do
 		o["Chat"..v] = {
 			type = "toggle", order = i*2, width = .12,
 			desc = CHAT.." "..CHANNEL,
 			name = " ",
 		}
-		
+
 		o["Local"..v] = {
 			type = "toggle", order = i*2,
 			desc = CHAT.." Window",
 			name = function() return format("|TInterface\\Icons\\%s:16:16:1:0%s|t  |cff%s%s|r", S.EventString[v][2], S.crop, S.GeneralColor[v], S.EventString[v][1]) end,
 		}
 	end
-	
-	-- (un)register UNIT_HEALTH according to options 
+
+	-- (un)register UNIT_HEALTH according to options
 	local function SetResurrect(i, v)
 		profile[i[#i]] = v
 		KCL:RefreshEvent()
 	end
 	o.LocalResurrect.set = SetResurrect
 	o.ChatResurrect.set = SetResurrect
-	
+
 	for i = 1, 4 do
 		o["newline"..i] = {type = "description", order = 1+i*4, name = ""}
 	end
@@ -579,7 +579,7 @@ end
 
 do
 	local o = options.args.Advanced.args.Spell.args
-	
+
 	for i, v in ipairs(S.SpellMsgOptionKey) do
 		o[v] = {
 			type = "input", order = i+30,
@@ -592,7 +592,7 @@ end
 
 do
 	local o = options.args.Advanced.args.Message.args
-	
+
 	for i, v in ipairs(S.EventMsg) do
 		o[v] = {
 			type = "input", order = i,
@@ -605,7 +605,7 @@ end
 do
 	local o = options.args.Advanced.args.Coloring.args
 	local colorWidth = .9
-	
+
 	for i, v in ipairs(S.Event) do
 		o[v] = {
 			type = "color", order = 2+i, -- 3-12
@@ -614,7 +614,7 @@ do
 			set = "SetGeneralColor",
 		}
 	end
-	
+
 	if CUSTOM_CLASS_COLORS then
 		o.notification = {
 			type = "description", order = 21,
@@ -632,7 +632,7 @@ do
 			}
 		end
 	end
-	
+
 	for i, v in pairs(S.School) do
 		o[v] = {
 			type = "color", order = 40+i, -- 41-47
@@ -641,7 +641,7 @@ do
 			set = "SetClassColor",
 		}
 	end
-	
+
 	for i, v in ipairs{2, 20, 40, 50, 54} do
 		o["header"..i] = {type = "header", order = v, name = ""}
 	end
@@ -667,7 +667,7 @@ function KCL:DataFrame()
 	if not KethoCombatLogData then
 		local f = CreateFrame("Frame", "KethoCombatLogData", UIParent, "DialogBoxFrame")
 		f:SetPoint("CENTER"); f:SetSize(600, 500)
-		
+
 		f:SetBackdrop({
 			bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
 			edgeFile = "Interface\\PVPFrame\\UI-Character-PVP-Highlight", -- this one is neat
@@ -675,11 +675,11 @@ function KCL:DataFrame()
 			insets = { left = 8, right = 6, top = 8, bottom = 8 },
 		})
 		f:SetBackdropBorderColor(0, .44, .87, 0.5)
-		
+
 	---------------
 	--- Movable ---
 	---------------
-		
+
 		f:EnableMouse(true) -- also seems to be automatically enabled when setting the OnMouseDown script
 		f:SetMovable(true); f:SetClampedToScreen(true)
 		f:SetScript("OnMouseDown", function(self, button)
@@ -688,24 +688,24 @@ function KCL:DataFrame()
 			end
 		end)
 		f:SetScript("OnMouseUp", f.StopMovingOrSizing)
-		
+
 	-------------------
 	--- ScrollFrame ---
 	-------------------
-		
+
 		local sf = CreateFrame("ScrollFrame", "KethoCombatLogDataScrollFrame", KethoCombatLogData, "UIPanelScrollFrameTemplate")
 		sf:SetPoint("LEFT", 16, 0)
 		sf:SetPoint("RIGHT", -32, 0)
 		sf:SetPoint("TOP", 0, -16)
 		sf:SetPoint("BOTTOM", KethoCombatLogDataButton, "TOP", 0, 0)
-		
+
 	---------------
 	--- EditBox ---
 	---------------
-		
+
 		local eb = CreateFrame("EditBox", "KethoCombatLogDataEditBox", KethoCombatLogDataScrollFrame)
 		eb:SetSize(sf:GetSize()) -- seems inheriting the points won't automatically set the width/size
-		
+
 		eb:SetMultiLine(true)
 		eb:SetFontObject("ChatFontNormal")
 		eb:SetAutoFocus(false) -- make keyboard not automatically focused to this editbox
@@ -713,27 +713,27 @@ function KCL:DataFrame()
 			--self:ClearFocus()
 			f:Hide() -- rather hide, since we only use it for copying to clipboard
 		end)
-		
+
 		sf:SetScrollChild(eb)
-		
+
 	-----------------
 	--- Resizable ---
 	-----------------
-		
+
 		f:SetResizable(true)
 		f:SetMinResize(150, 100) -- at least show the "okay" button
-		
+
 		local rb = CreateFrame("Button", "KethoCombatLogDataResizeButton", KethoCombatLogData)
 		rb:SetPoint("BOTTOMRIGHT", -6, 7); rb:SetSize(16, 16)
-		
+
 		rb:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
 		rb:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
 		rb:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
-		
+
 		rb:SetScript("OnMouseDown", function(self, button)
 			if button == "LeftButton" then
 				f:StartSizing("BOTTOMRIGHT")
-				self:GetHighlightTexture():Hide() -- we only want to see the PushedTexture now 
+				self:GetHighlightTexture():Hide() -- we only want to see the PushedTexture now
 			end
 		end)
 		rb:SetScript("OnMouseUp", function(self, button)
@@ -741,18 +741,18 @@ function KCL:DataFrame()
 			self:GetHighlightTexture():Show()
 			eb:SetWidth(sf:GetWidth()) -- update editbox to the new scrollframe width
 		end)
-		
+
 		f:Show()
 	else
 		KethoCombatLogData:Show()
 	end
-	
+
 	if ACD.OpenFrames.KethoCombatLog_Parent then
 		-- the ACD window's Strata is "FULLSCREEN_DIALOG", and changing FrameLevels seems troublesome
 		KethoCombatLogData:SetFrameStrata("TOOLTIP")
 	end
 	GameTooltip:Hide() -- most likely the popup frame will prevent the GameTooltip's OnLeave script from firing
-	
+
 	SpellDataString = SpellDataString or self:GetSpellData() -- around 6500 string length
 	KethoCombatLogDataEditBox:SetText(SpellDataString)
 end

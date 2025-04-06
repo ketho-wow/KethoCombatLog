@@ -181,6 +181,15 @@
         "CombatText_StandardScroll",
         "UIErrorsFrame",
         "RaidNotice_AddMessage",
-        "RaidWarningFrame"
+        "RaidWarningFrame",
+        "CopyTable",
+        "GameTooltip",
+        "RAID_CLASS_COLORS",
+        "UIParent",
+        "LOCALIZED_CLASS_NAMES_MALE",
+        "COMBATLOG_OBJECT_RAIDTARGET_MASK",
+        "COMBATLOG_OBJECT_REACTION_FRIENDLY",
+        "COMBATLOG_OBJECT_REACTION_HOSTILE",
+        "COMBATLOG_OBJECT_TYPE_GUARDIAN"
     ]
 }

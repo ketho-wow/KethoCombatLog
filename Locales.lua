@@ -4,41 +4,41 @@ local L = {
 	enUS = {
 		EVENT_JUKE = "Juke",
 		EVENT_CROWDCONTROL = "Crowd Control",
-		
+
 		MSG_TAUNT = "<SRC><SPELL> taunted <DEST>",
-		
+
 		MSG_INTERRUPT = "<SRC><SPELL> "..ACTION_SPELL_INTERRUPT.." <DEST><XSPELL>",
 		MSG_JUKE = "<SRC> juked <SPELL> on <DEST>",
-		
+
 		MSG_DISPEL = "<SRC><SPELL> "..ACTION_SPELL_DISPEL_BUFF.." <DEST><XSPELL>",
 		MSG_CLEANSE = "<SRC><SPELL> "..ACTION_SPELL_DISPEL_DEBUFF.." <DEST><XSPELL>",
 		MSG_SPELLSTEAL = "<SRC><SPELL> "..ACTION_SPELL_STOLEN.." <DEST><XSPELL>",
-		
+
 		MSG_REFLECT = "<DEST> "..ACTION_SPELL_MISSED_REFLECT.." <SRC><SPELL>",
 		MSG_MISS = "<SRC><SPELL> on <DEST> "..ACTION_SPELL_CAST_FAILED.." (<TYPE>)",
-		
+
 		MSG_CROWDCONTROL = "<SRC><SPELL> CC'ed <DEST>",
 		-- this particular spell and extraspell order is extra confusing :x
 		MSG_BREAK_SPELL = "<SRC><XSPELL> "..ACTION_SPELL_AURA_BROKEN.." <DEST><SPELL>",
 		MSG_BREAK = "<SRC> "..ACTION_SPELL_AURA_BROKEN.." <DEST><SPELL>",
 		MSG_BREAK_NOSOURCE = "<SPELL> on <DEST> "..ACTION_SPELL_AURA_BROKEN,
-		
+
 		MSG_DEATH = "<DEST> "..ACTION_UNIT_DIED.." <SRC><SPELL> <AMOUNT> <SCHOOL>",
 		MSG_DEATH_MELEE = "<DEST> "..ACTION_UNIT_DIED.." <SRC> <AMOUNT> "..ACTION_SWING,
 		MSG_DEATH_ENVIRONMENTAL = "<DEST> "..ACTION_UNIT_DIED.." <AMOUNT> <TYPE>",
 		MSG_DEATH_INSTAKILL = "<SRC><SPELL> "..ACTION_SPELL_INSTAKILL.." <DEST>",
-		
+
 		MSG_SAVE = "<SRC><SPELL> saved <DEST> <AMOUNT> <SCHOOL>",
 		MSG_RESURRECT = "<SRC><SPELL> "..ACTION_SPELL_RESURRECT.." <DEST>",
 		-- source and dest are switched
 		MSG_SELFRES_SOULSTONE = "<SRC> used <DEST><SPELL>",
 		MSG_SELFRES_REINCARNATION = "<SRC> "..ACTION_SPELL_CAST_SUCCESS.." <SPELL>",
-		
+
 		LOCAL = "Local",
 		SELF = "Self",
 		ENEMY_PLAYERS_CLASS_COLORS = "Color enemy players by class",
 		ABBREVIATE_LARGE_NUMBERS = "Abbreviate Large Numbers",
-		
+
 		USE_CLASS_COLORS = "Please use the |cff71D5FFClass Colors|r AddOn",
 		BROKER_CLICK = "|cffFFFFFFClick|r to open the options menu",
 		BROKER_SHIFT_CLICK = "|cffFFFFFFShift-click|r to toggle this AddOn",
@@ -70,7 +70,7 @@ local L = {
 		MSG_SPELLSTEAL = "<SRC><SPELL> stahl <DEST><XSPELL>",
 		MSG_TAUNT = "<SRC><SPELL> verspottete <DEST>",
 		SELF = "Selbst",
-		
+
 		USE_CLASS_COLORS = "Bitte benützt dafür das |cff71D5FFClass Colors|r AddOn",
 		BROKER_CLICK = "|cffFFFFFFKlickt|r, um das Optionsmenü zu öffnen",
 		BROKER_SHIFT_CLICK = "|cffFFFFFFShift-klickt|r, um dieses AddOn ein-/auszuschalten",
@@ -122,7 +122,7 @@ local L = {
 	},
 	zhCN = {
 		SELF = "自己",
-		
+
 		USE_CLASS_COLORS = "请使用 |cff71D5FFClassColors|r 插件", -- Needs review
 		BROKER_CLICK = "|cffFFFFFF点击|r打开选项菜单",
 		BROKER_SHIFT_CLICK = "|cffFFFFFFrShift-点击|r 启用或禁用插件",
